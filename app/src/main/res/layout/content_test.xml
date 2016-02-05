@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <TextView
+        android:id="@+id/parkinsonsTextView"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:gravity="center"
+        android:text="Sample Test Screen"
+        android:textSize="30dp" />
+
+    <LinearLayout
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:id="@+id/linearLayout">
+
+        <Button
+            android:layout_height="wrap_content"
+            android:id="@+id/back_button"
+            android:text="Back"
+            android:layout_width="wrap_content" />
+
+        <Button
+            android:layout_height="wrap_content"
+            android:id="@+id/redo_button"
+            android:text="Redo"
+            android:layout_width="wrap_content" />
+
+        <Button
+            android:layout_height="wrap_content"
+            android:id="@+id/next_button"
+            android:text="Next"
+            android:layout_width="wrap_content" />
+
+    </LinearLayout>
+
+</RelativeLayout>

@@ -14,6 +14,9 @@ import android.widget.Button;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     Button startTestButton;
+    Button gyroTestButton;
+    Intent intentStart;
+    Intent intentGyro;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,6 +25,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         startTestButton = (Button) findViewById(R.id.testButton);
         startTestButton.setOnClickListener(this);
+
+        gyroTestButton = (Button) findViewById(R.id.gyroTestButton);
+        gyroTestButton.setOnClickListener(this);
 
     }
 
@@ -47,8 +53,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return super.onOptionsItemSelected(item);
     }
 
-    public void onClick(View v) {
-        Intent intent = new Intent(this, TestActivity.class);
-        startActivity(intent);
+    @Override
+    public void onClick(View view) {
+
+        switch (view.getId()) {
+            case R.id.testButton:
+                startActivity(new Intent(MainActivity.this, TestActivity.class));
+                break;
+            case R.id.gyroTestButton:
+                startActivity(new Intent(MainActivity.this, GyroscopeTestActivity.class));
+                break;
+            default:
+                break;
+        }
     }
 }

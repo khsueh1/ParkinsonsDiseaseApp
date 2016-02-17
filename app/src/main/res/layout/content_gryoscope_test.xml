@@ -37,8 +37,8 @@
         style="?android:attr/buttonStyleSmall"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Email"
         android:id="@+id/emailButton"
+        android:text="Email"
         android:layout_alignTop="@+id/stopButton"
         android:layout_toRightOf="@+id/stopButton"
         android:layout_toEndOf="@+id/stopButton" />

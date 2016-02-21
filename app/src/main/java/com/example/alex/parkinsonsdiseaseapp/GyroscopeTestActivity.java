@@ -52,18 +52,35 @@ public class GyroscopeTestActivity extends AppCompatActivity implements SensorEv
         setSupportActionBar(toolbar);
 
         sm = (SensorManager)getSystemService(SENSOR_SERVICE);
-        mAcc = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+
 
         Button email = (Button) findViewById(R.id.emailButton);
+
         email.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
                 sendEmail();
             }
         });
+
+        Button start = (Button) findViewById(R.id.startButton);
+        start.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View view) {
+                startRecording();
+            }
+        });
+
+        Button stop = (Button) findViewById(R.id.stopButton);
+        stop.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View view) {
+                stopRecording();
+            }
+        });
     }
 
     public void onSensorChanged(SensorEvent e) {
-        String output = "x = " + e.values[0] + ", Y = " + e.values[1] + "; Z = " + e.values[2];
+        if(e.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+            String output = "x = " + e.values[0] + ", Y = " + e.values[1] + "; Z = " + e.values[2];
+
        /* try {
             FileOutputStream outputStream = openFileOutput("test.txt", Context.MODE_WORLD_READABLE);
             outputStream.write(output.getBytes());
@@ -71,7 +88,17 @@ public class GyroscopeTestActivity extends AppCompatActivity implements SensorEv
         } catch (Exception z) {
             z.printStackTrace();
         }*/
-        System.out.println(output);
+            System.out.println(output);
+        }
+    }
+
+    protected void startRecording() {
+        mAcc = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        sm.registerListener(this, mAcc, SensorManager.SENSOR_DELAY_NORMAL);
+    }
+
+    protected void stopRecording(){
+         sm.unregisterListener(this);
     }
 
     protected void sendEmail() {

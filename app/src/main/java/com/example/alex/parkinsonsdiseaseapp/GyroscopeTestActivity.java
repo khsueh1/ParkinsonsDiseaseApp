@@ -17,7 +17,7 @@ import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
-
+import android.content.Context;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -30,15 +30,20 @@ import java.io.UnsupportedEncodingException;
 public class GyroscopeTestActivity extends AppCompatActivity implements SensorEventListener {
     private  SensorManager sm;
     private  Sensor mAcc;
+    private FileOutputStream out = null;
+
 
     protected void onResume(){
         super.onResume();
         sm.registerListener(this, mAcc, SensorManager.SENSOR_DELAY_NORMAL);
+        System.out.println("in onResume");
     }
 
     protected void onPause(){
         super.onPause();
         sm.unregisterListener(this);
+        System.out.println("in onpause");
+
     }
 
     public void onAccuracyChanged(Sensor sensor, int accuracy){
@@ -65,13 +70,19 @@ public class GyroscopeTestActivity extends AppCompatActivity implements SensorEv
         Button start = (Button) findViewById(R.id.startButton);
         start.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
-                startRecording();
+                try {
+                    GyroscopeTestActivity gta = new GyroscopeTestActivity();
+                    startRecording(getApplicationContext());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         });
 
         Button stop = (Button) findViewById(R.id.stopButton);
         stop.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
+
                 stopRecording();
             }
         });
@@ -80,6 +91,12 @@ public class GyroscopeTestActivity extends AppCompatActivity implements SensorEv
     public void onSensorChanged(SensorEvent e) {
         if(e.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
             String output = "x = " + e.values[0] + ", Y = " + e.values[1] + "; Z = " + e.values[2];
+
+            try {
+                out.write(output.getBytes());
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
 
        /* try {
             FileOutputStream outputStream = openFileOutput("test.txt", Context.MODE_WORLD_READABLE);
@@ -92,13 +109,26 @@ public class GyroscopeTestActivity extends AppCompatActivity implements SensorEv
         }
     }
 
-    protected void startRecording() {
+    protected void startRecording(Context context) throws IOException {
         mAcc = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         sm.registerListener(this, mAcc, SensorManager.SENSOR_DELAY_NORMAL);
+
+        File mydir = context.getDir("mydir", Context.MODE_PRIVATE); //Creating an internal dir;
+        File fileWithinMyDir = new File(mydir, "myfile.txt"); //Getting a file within the dir.
+        out = new FileOutputStream(fileWithinMyDir);
     }
 
     protected void stopRecording(){
          sm.unregisterListener(this);
+
+        try {
+            out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+        // System.out.println(fOut.getAbsolutepath());
     }
 
     protected void sendEmail() {

@@ -8,6 +8,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -71,8 +72,7 @@ public class GyroscopeTestActivity extends AppCompatActivity implements SensorEv
         start.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
                 try {
-                    GyroscopeTestActivity gta = new GyroscopeTestActivity();
-                    startRecording(getApplicationContext());
+                    startRecording();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -90,7 +90,7 @@ public class GyroscopeTestActivity extends AppCompatActivity implements SensorEv
 
     public void onSensorChanged(SensorEvent e) {
         if(e.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-            String output = "x = " + e.values[0] + ", Y = " + e.values[1] + "; Z = " + e.values[2];
+            String output = "X = " + e.values[0] + ", Y = " + e.values[1] + "; Z = " + e.values[2] + "\n";
 
             try {
                 out.write(output.getBytes());
@@ -109,13 +109,15 @@ public class GyroscopeTestActivity extends AppCompatActivity implements SensorEv
         }
     }
 
-    protected void startRecording(Context context) throws IOException {
+    protected void startRecording() throws IOException {
         mAcc = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         sm.registerListener(this, mAcc, SensorManager.SENSOR_DELAY_NORMAL);
 
-        File mydir = context.getDir("mydir", Context.MODE_PRIVATE); //Creating an internal dir;
-        File fileWithinMyDir = new File(mydir, "myfile.txt"); //Getting a file within the dir.
-        out = new FileOutputStream(fileWithinMyDir);
+        File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
+        File dataDir = new File(path, "KennyData");
+        dataDir.mkdirs(); //make if not exist
+        File file = new File(path, "kennydata.txt");
+        out = new FileOutputStream(file);
     }
 
     protected void stopRecording(){
@@ -147,7 +149,7 @@ public class GyroscopeTestActivity extends AppCompatActivity implements SensorEv
         try {
             startActivity(Intent.createChooser(emailIntent, "Send mail..."));
             finish();
-            Log.i("Finished sending email...", "");
+            Log.i("Finished sending email.", "");
         }
         catch (android.content.ActivityNotFoundException ex) {
             Toast.makeText(GyroscopeTestActivity.this, "There is no email client installed.", Toast.LENGTH_SHORT).show();

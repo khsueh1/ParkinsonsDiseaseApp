@@ -27,16 +27,22 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Locale;
+import java.util.TimeZone;
 
 public class GyroscopeTestActivity extends AppCompatActivity implements SensorEventListener {
     private  SensorManager sm;
     private  Sensor mAcc;
     private FileOutputStream out = null;
-
+    private Sensor gyro;
+    private Calendar cal;
 
     protected void onResume(){
         super.onResume();
         sm.registerListener(this, mAcc, SensorManager.SENSOR_DELAY_NORMAL);
+        sm.registerListener(this, gyro, SensorManager.SENSOR_DELAY_NORMAL);
         System.out.println("in onResume");
     }
 
@@ -90,7 +96,9 @@ public class GyroscopeTestActivity extends AppCompatActivity implements SensorEv
 
     public void onSensorChanged(SensorEvent e) {
         if(e.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-            String output = "X = " + e.values[0] + ", Y = " + e.values[1] + "; Z = " + e.values[2] + "\n";
+            cal = Calendar.getInstance(TimeZone.getDefault());
+            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS a");
+            String output = "(A: " + sdf.format(cal.getTime()).toString() + ") X = " + e.values[0] + ", Y = " + e.values[1] + ", Z = " + e.values[2] + "\n";
 
             try {
                 out.write(output.getBytes());
@@ -98,25 +106,35 @@ public class GyroscopeTestActivity extends AppCompatActivity implements SensorEv
                 e1.printStackTrace();
             }
 
-       /* try {
-            FileOutputStream outputStream = openFileOutput("test.txt", Context.MODE_WORLD_READABLE);
-            outputStream.write(output.getBytes());
-            outputStream.close();
-        } catch (Exception z) {
-            z.printStackTrace();
-        }*/
+            System.out.println(output);
+        }
+        if(e.sensor.getType() == Sensor.TYPE_GYROSCOPE){
+            cal = Calendar.getInstance(TimeZone.getDefault());
+            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS a");
+            String output = "(G: " + sdf.format(cal.getTime()).toString() + ") X = " + e.values[0] + ", Y = " + e.values[1] + ", Z = " + e.values[2] + "\n";
+            try {
+                out.write(output.getBytes());
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
             System.out.println(output);
         }
     }
 
     protected void startRecording() throws IOException {
-        mAcc = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        sm.registerListener(this, mAcc, SensorManager.SENSOR_DELAY_NORMAL);
+        if(sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null) {
+            mAcc = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+            sm.registerListener(this, mAcc, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+        if(sm.getDefaultSensor(Sensor.TYPE_GYROSCOPE) != null) {
+            gyro = sm.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
+            sm.registerListener(this, gyro, SensorManager.SENSOR_DELAY_NORMAL);
+        }
 
         File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
-        File dataDir = new File(path, "KennyData");
-        dataDir.mkdirs(); //make if not exist
-        File file = new File(path, "kennydata.txt");
+        //File dataDir = new File(path, "Data");
+        //dataDir.mkdirs(); //make if not exist
+        File file = new File(path, "Test_Data.txt");
         out = new FileOutputStream(file);
     }
 

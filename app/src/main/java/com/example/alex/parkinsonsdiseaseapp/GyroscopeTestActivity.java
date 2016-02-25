@@ -9,6 +9,8 @@ import android.hardware.SensorManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.SystemClock;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -35,14 +37,37 @@ import java.util.TimeZone;
 public class GyroscopeTestActivity extends AppCompatActivity implements SensorEventListener {
     private  SensorManager sm;
     private  Sensor mAcc;
-    private FileOutputStream out = null;
     private Sensor gyro;
+    private Sensor magnetic;
+
+    private FileOutputStream out = null;
+
     private Calendar cal;
+
+
+    long starttime = 0L;
+    long timeInMilliseconds = 0L;
+    int secs = 0;
+    int mins = 0;
+    int milliseconds = 0;
+    int lsecs = -1;
+    int lmins = -1;
+    int lmilliseconds = -1;
+
+    float[] acceleration = new float[3];
+    float[] gyroscope = new float[3];
+    float[] magneticField = new float[3];
+
+
+
+    Handler handler = new Handler();
+
 
     protected void onResume(){
         super.onResume();
         sm.registerListener(this, mAcc, SensorManager.SENSOR_DELAY_NORMAL);
         sm.registerListener(this, gyro, SensorManager.SENSOR_DELAY_NORMAL);
+        sm.registerListener(this, magnetic, SensorManager.SENSOR_DELAY_NORMAL);
         System.out.println("in onResume");
     }
 
@@ -95,33 +120,106 @@ public class GyroscopeTestActivity extends AppCompatActivity implements SensorEv
     }
 
     public void onSensorChanged(SensorEvent e) {
-        if(e.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-            cal = Calendar.getInstance(TimeZone.getDefault());
-            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS a");
-            String output = "(A: " + sdf.format(cal.getTime()).toString() + ") X = " + e.values[0] + ", Y = " + e.values[1] + ", Z = " + e.values[2] + "\n";
+        //these 3 lines are temporary right now
+        //i am recording the current time to compare against the stopwatch
+        cal = Calendar.getInstance(TimeZone.getDefault());
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS a");
+        String output = sdf.format(cal.getTime()).toString();
 
+        //initialize the last mins, last seconds, lasts milliseconds
+        if((lmins == -1) && (lsecs == -1) && (lmilliseconds == -1)){
+            lmins = mins;
+            lsecs = secs;
+            lmilliseconds = milliseconds;
+
+            //record sensor data
+            if(e.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+                acceleration[0] = e.values[0];
+                acceleration[1] = e.values[1];
+                acceleration[2] = e.values[2];
+            }
+            if(e.sensor.getType() == Sensor.TYPE_GYROSCOPE){
+                gyroscope[0] = e.values[0];
+                gyroscope[1] = e.values[1];
+                gyroscope[2] = e.values[2];
+            }
+            if(e.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
+                magneticField[0] = e.values[0];
+                magneticField[1] = e.values[1];
+                magneticField[2] = e.values[2];
+            }
+        }else if((lmins == mins) && (lsecs == secs) && (lmilliseconds == milliseconds)) {
+            //the given time is the same as the previous recorded time
+
+            //do not print yet, perhaps there are other sensors that have not been recorded yet
+            //we want to only print one line which has all the possible sensor at that time
+            // do not want this to happen:
+            //  time(0:0:1), .56, .34, .24,  - ,  - ,  - , -  , -  , -
+            //  time(0:0:1),  - ,  - ,  - , .12, .23, .43, -  , -  , -
+            //  time(0:0:1),  - ,  - ,  - ,  - ,  - ,  - , .67, .78, .89
+            // we want this
+            //  time(0:0:1), .56, .34, .24, .12, .23, .43, .67, .78, .89
+            //record sensor data
+            if(e.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+                acceleration[0] = e.values[0];
+                acceleration[1] = e.values[1];
+                acceleration[2] = e.values[2];
+            }
+            if(e.sensor.getType() == Sensor.TYPE_GYROSCOPE){
+                gyroscope[0] = e.values[0];
+                gyroscope[1] = e.values[1];
+                gyroscope[2] = e.values[2];
+            }
+            if(e.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD){
+                magneticField[0] = e.values[0];
+                magneticField[1] = e.values[1];
+                magneticField[2] = e.values[2];
+            }
+        }else {
+            //the given time is different from the previous recorded time
+            //this means that all the possible sensor data should be recorded now
+            //lets print out the data now
+
+            output += ", " + lmins  + ":" + lsecs + ":" + lmilliseconds;
+
+            for(float i: acceleration){
+                if(i == -1){
+                    output += ", -";
+                }else{
+                    output += ", " + i;
+                }
+            }
+
+            for(float i: gyroscope){
+                if(i == -1){
+                    output += ", -";
+                }else{
+                    output += ", " + i;
+                }
+            }
+            for(float i: magneticField){
+                if(i == -1){
+                    output += ", -\n";
+                }else{
+                    output += ", " + i + "\n";
+                }
+            }
+
+            System.out.println(output);
             try {
                 out.write(output.getBytes());
             } catch (IOException e1) {
                 e1.printStackTrace();
             }
 
-            System.out.println(output);
-        }
-        if(e.sensor.getType() == Sensor.TYPE_GYROSCOPE){
-            cal = Calendar.getInstance(TimeZone.getDefault());
-            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS a");
-            String output = "(G: " + sdf.format(cal.getTime()).toString() + ") X = " + e.values[0] + ", Y = " + e.values[1] + ", Z = " + e.values[2] + "\n";
-            try {
-                out.write(output.getBytes());
-            } catch (IOException e1) {
-                e1.printStackTrace();
-            }
-            System.out.println(output);
+            lmins = mins;
+            lsecs = secs;
+            lmilliseconds = milliseconds;
         }
     }
 
     protected void startRecording() throws IOException {
+        //checks to make sure the phone has the sensors that we are recording from
         if(sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null) {
             mAcc = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
             sm.registerListener(this, mAcc, SensorManager.SENSOR_DELAY_NORMAL);
@@ -131,11 +229,29 @@ public class GyroscopeTestActivity extends AppCompatActivity implements SensorEv
             sm.registerListener(this, gyro, SensorManager.SENSOR_DELAY_NORMAL);
         }
 
+        if(sm.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD) != null) {
+            magnetic = sm.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+            sm.registerListener(this, magnetic, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+
+        //right now we will save the files to Documents
+        //** we should change file save destination to the application folder later
         File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
+
         //File dataDir = new File(path, "Data");
         //dataDir.mkdirs(); //make if not exist
-        File file = new File(path, "Test_Data.txt");
+
+        //file name is the current date and time
+        cal = Calendar.getInstance(TimeZone.getDefault());
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS a");
+        String output = sdf.format(cal.getTime()).toString();
+        File file = new File(path, output + ".txt");
         out = new FileOutputStream(file);
+
+        //start the stopwatch
+        starttime = SystemClock.uptimeMillis();
+        //want no delay in the stopwatch
+        handler.postDelayed(updateTimer, 0);
     }
 
     protected void stopRecording(){
@@ -147,6 +263,16 @@ public class GyroscopeTestActivity extends AppCompatActivity implements SensorEv
             e.printStackTrace();
         }
 
+        //reset stopwatch information
+        starttime = 0L;
+        timeInMilliseconds = 0L;
+        secs = 0;
+        mins = 0;
+        milliseconds = 0;
+        lsecs = -1;
+        lmins = -1;
+        lmilliseconds = -1;
+        handler.removeCallbacks(updateTimer);
 
         // System.out.println(fOut.getAbsolutepath());
     }
@@ -173,4 +299,23 @@ public class GyroscopeTestActivity extends AppCompatActivity implements SensorEv
             Toast.makeText(GyroscopeTestActivity.this, "There is no email client installed.", Toast.LENGTH_SHORT).show();
         }
     }
+
+    public Runnable updateTimer = new Runnable() {
+        public void run() {
+          //  System.out.println("in here");
+            timeInMilliseconds = SystemClock.uptimeMillis() - starttime;
+            secs = (int) (timeInMilliseconds / 1000);
+            mins = secs / 60;
+            secs = secs % 60;
+            milliseconds = (int) (timeInMilliseconds % 1000);
+            //do not delay
+            handler.postDelayed(this, 0);
+        }
+    };
+
+
+
+
+
+
 }

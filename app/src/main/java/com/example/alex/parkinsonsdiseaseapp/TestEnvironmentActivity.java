@@ -1,5 +1,6 @@
 package com.example.alex.parkinsonsdiseaseapp;
 
+import android.content.Context;
 import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -80,6 +81,10 @@ public class TestEnvironmentActivity extends AppCompatActivity implements Sensor
 
         sm = (SensorManager)getSystemService(SENSOR_SERVICE);
 
+        final Context context = getApplicationContext();
+        final CharSequence text = "Stop Button Pressed";
+        final int duration = Toast.LENGTH_SHORT;
+
 
         Button email = (Button) findViewById(R.id.emailButton);
 
@@ -103,7 +108,6 @@ public class TestEnvironmentActivity extends AppCompatActivity implements Sensor
         Button stop = (Button) findViewById(R.id.stopButton);
         stop.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
-
                 stopRecording();
             }
         });
@@ -248,7 +252,9 @@ public class TestEnvironmentActivity extends AppCompatActivity implements Sensor
          sm.unregisterListener(this);
 
         try {
-            out.close();
+            if (out != null) {
+                out.close();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }

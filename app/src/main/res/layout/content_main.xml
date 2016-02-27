@@ -21,35 +21,12 @@
         android:textSize="30dp" />
 
     <Button
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Take Test"
         android:id="@+id/testButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Begin Test"
-        android:textSize="20dp"
-        android:layout_below="@+id/parkinsonsTextView"
-        android:layout_marginTop="72dp"
-        android:layout_alignRight="@+id/viewScoreButton"
-        android:layout_alignEnd="@+id/viewScoreButton"
-        android:layout_alignLeft="@+id/viewScoreButton"
-        android:layout_alignStart="@+id/viewScoreButton" />
-
-    <Button
-        android:id="@+id/viewScoreButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="View Scores"
-        android:textSize="20dp"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="136dp" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="GyroScope Test"
-        android:id="@+id/gyroTestButton"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true"
-        android:textSize="20dp" />
+        android:layout_marginBottom="66dp" />
 
 </RelativeLayout>

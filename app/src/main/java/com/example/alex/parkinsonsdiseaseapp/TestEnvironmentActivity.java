@@ -1,6 +1,5 @@
 package com.example.alex.parkinsonsdiseaseapp;
 
-import android.content.Context;
 import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -11,30 +10,21 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.SystemClock;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
-import android.content.Context;
+
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Locale;
 import java.util.TimeZone;
 
-public class GyroscopeTestActivity extends AppCompatActivity implements SensorEventListener {
+public class TestEnvironmentActivity extends AppCompatActivity implements SensorEventListener {
     private  SensorManager sm;
     private  Sensor mAcc;
     private Sensor gyro;
@@ -84,7 +74,7 @@ public class GyroscopeTestActivity extends AppCompatActivity implements SensorEv
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_gryoscope_test);
+        setContentView(R.layout.activity_test_environment);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -296,7 +286,7 @@ public class GyroscopeTestActivity extends AppCompatActivity implements SensorEv
             Log.i("Finished sending email.", "");
         }
         catch (android.content.ActivityNotFoundException ex) {
-            Toast.makeText(GyroscopeTestActivity.this, "There is no email client installed.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(TestEnvironmentActivity.this, "There is no email client installed.", Toast.LENGTH_SHORT).show();
         }
     }
 

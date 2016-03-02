@@ -18,9 +18,11 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.TimeZone;
@@ -31,7 +33,7 @@ public class TestEnvironmentActivity extends AppCompatActivity implements Sensor
     private Sensor gyro;
     private Sensor magnetic;
 
-    private FileOutputStream out = null;
+    private BufferedWriter out = null;
 
     private Calendar cal;
 
@@ -191,6 +193,7 @@ public class TestEnvironmentActivity extends AppCompatActivity implements Sensor
                     output += ", " + i;
                 }
             }
+
             for(float i: magneticField){
                 if(i == -1){
                     output += ", -\n";
@@ -201,7 +204,7 @@ public class TestEnvironmentActivity extends AppCompatActivity implements Sensor
 
             System.out.println(output);
             try {
-                out.write(output.getBytes());
+                out.write(output);
             } catch (IOException e1) {
                 e1.printStackTrace();
             }
@@ -230,7 +233,7 @@ public class TestEnvironmentActivity extends AppCompatActivity implements Sensor
 
         //right now we will save the files to Documents
         //** we should change file save destination to the application folder later
-        File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
+        File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
 
         //File dataDir = new File(path, "Data");
         //dataDir.mkdirs(); //make if not exist
@@ -239,8 +242,9 @@ public class TestEnvironmentActivity extends AppCompatActivity implements Sensor
         cal = Calendar.getInstance(TimeZone.getDefault());
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS a");
         String output = sdf.format(cal.getTime()).toString();
-        File file = new File(path, output + ".txt");
-        out = new FileOutputStream(file);
+        File file = new File(path, output + ".csv");
+        FileOutputStream fos = new FileOutputStream(file);
+        out = new BufferedWriter(new OutputStreamWriter(fos));
 
         //start the stopwatch
         starttime = SystemClock.uptimeMillis();
@@ -253,6 +257,7 @@ public class TestEnvironmentActivity extends AppCompatActivity implements Sensor
 
         try {
             if (out != null) {
+                out.flush();
                 out.close();
             }
         } catch (IOException e) {
@@ -308,10 +313,4 @@ public class TestEnvironmentActivity extends AppCompatActivity implements Sensor
             handler.postDelayed(this, 0);
         }
     };
-
-
-
-
-
-
 }

@@ -50,6 +50,7 @@ public class TestEnvironmentActivity extends AppCompatActivity implements Sensor
     float[] acceleration = new float[3];
     float[] gyroscope = new float[3];
     float[] magneticField = new float[3];
+    int acc_check = 0, gyro_check=0;
 
 
 
@@ -60,7 +61,7 @@ public class TestEnvironmentActivity extends AppCompatActivity implements Sensor
         super.onResume();
         sm.registerListener(this, mAcc, SensorManager.SENSOR_DELAY_NORMAL);
         sm.registerListener(this, gyro, SensorManager.SENSOR_DELAY_NORMAL);
-        sm.registerListener(this, magnetic, SensorManager.SENSOR_DELAY_NORMAL);
+       // sm.registerListener(this, magnetic, SensorManager.SENSOR_DELAY_NORMAL);
         System.out.println("in onResume");
     }
 
@@ -139,11 +140,11 @@ public class TestEnvironmentActivity extends AppCompatActivity implements Sensor
                 gyroscope[1] = e.values[1];
                 gyroscope[2] = e.values[2];
             }
-            if(e.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
+            /*if(e.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
                 magneticField[0] = e.values[0];
                 magneticField[1] = e.values[1];
                 magneticField[2] = e.values[2];
-            }
+            }*/
         }else if((lmins == mins) && (lsecs == secs) && (lmilliseconds == milliseconds)) {
             //the given time is the same as the previous recorded time
 
@@ -160,18 +161,20 @@ public class TestEnvironmentActivity extends AppCompatActivity implements Sensor
                 acceleration[0] = e.values[0];
                 acceleration[1] = e.values[1];
                 acceleration[2] = e.values[2];
+                acc_check = 1;
             }
             if(e.sensor.getType() == Sensor.TYPE_GYROSCOPE){
                 gyroscope[0] = e.values[0];
                 gyroscope[1] = e.values[1];
                 gyroscope[2] = e.values[2];
+                gyro_check = 1;
             }
-            if(e.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD){
+            /*if(e.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD){
                 magneticField[0] = e.values[0];
                 magneticField[1] = e.values[1];
                 magneticField[2] = e.values[2];
-            }
-        }else {
+            }*/
+        }else{
             //the given time is different from the previous recorded time
             //this means that all the possible sensor data should be recorded now
             //lets print out the data now
@@ -193,25 +196,32 @@ public class TestEnvironmentActivity extends AppCompatActivity implements Sensor
                     output += ", " + i;
                 }
             }
-
+/*
             for(float i: magneticField){
                 if(i == -1){
                     output += ", -\n";
                 }else{
-                    output += ", " + i + "\n";
+                    output += ", " + i;
                 }
-            }
+            }*/
+            output += "\n";
+            //System.out.printf("acc_check is %d, and gyro check is %d\n", acc_check, gyro_check);
+            if(acc_check == 1 && gyro_check == 1) {
+                System.out.println(output + "\n");
+                acc_check = 0;
+                gyro_check = 0;
 
-            System.out.println(output);
-            try {
-                out.write(output);
-            } catch (IOException e1) {
-                e1.printStackTrace();
+                try {
+                    out.write(output);
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
             }
 
             lmins = mins;
             lsecs = secs;
             lmilliseconds = milliseconds;
+
         }
     }
 
@@ -219,17 +229,17 @@ public class TestEnvironmentActivity extends AppCompatActivity implements Sensor
         //checks to make sure the phone has the sensors that we are recording from
         if(sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null) {
             mAcc = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-            sm.registerListener(this, mAcc, SensorManager.SENSOR_DELAY_NORMAL);
+            sm.registerListener(this, mAcc, SensorManager.SENSOR_DELAY_FASTEST);
         }
         if(sm.getDefaultSensor(Sensor.TYPE_GYROSCOPE) != null) {
             gyro = sm.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
-            sm.registerListener(this, gyro, SensorManager.SENSOR_DELAY_NORMAL);
+            sm.registerListener(this, gyro, SensorManager.SENSOR_DELAY_FASTEST);
         }
 
-        if(sm.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD) != null) {
+        /*if(sm.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD) != null) {
             magnetic = sm.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
             sm.registerListener(this, magnetic, SensorManager.SENSOR_DELAY_NORMAL);
-        }
+        }*/
 
         //right now we will save the files to Documents
         //** we should change file save destination to the application folder later

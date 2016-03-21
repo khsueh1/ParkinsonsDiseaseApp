@@ -20,11 +20,14 @@ import android.widget.Toast;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.TimeZone;
 
 public class TestEnvironmentActivity extends AppCompatActivity implements SensorEventListener {
@@ -47,6 +50,8 @@ public class TestEnvironmentActivity extends AppCompatActivity implements Sensor
     int lmins = -1;
     int lmilliseconds = -1;
 
+    List<String> a=new ArrayList<String>();
+    List<String> g=new ArrayList<String>();
     float[] acceleration = new float[3];
     float[] gyroscope = new float[3];
     float[] magneticField = new float[3];
@@ -111,159 +116,68 @@ public class TestEnvironmentActivity extends AppCompatActivity implements Sensor
         Button stop = (Button) findViewById(R.id.stopButton);
         stop.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
-                stopRecording();
+                try {
+                    stopRecording();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         });
     }
 
     public void onSensorChanged(SensorEvent e) {
-        //these 3 lines are temporary right now
-        //i am recording the current time to compare against the stopwatch
         cal = Calendar.getInstance(TimeZone.getDefault());
-        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS a");
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
         String output = sdf.format(cal.getTime()).toString();
-
-        //initialize the last mins, last seconds, lasts milliseconds
-        if((lmins == -1) && (lsecs == -1) && (lmilliseconds == -1)){
-            lmins = mins;
-            lsecs = secs;
-            lmilliseconds = milliseconds;
-
-            //record sensor data
-            if(e.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-                acceleration[0] = e.values[0];
-                acceleration[1] = e.values[1];
-                acceleration[2] = e.values[2];
-            }
-            if(e.sensor.getType() == Sensor.TYPE_GYROSCOPE){
-                gyroscope[0] = e.values[0];
-                gyroscope[1] = e.values[1];
-                gyroscope[2] = e.values[2];
-            }
-            /*if(e.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
-                magneticField[0] = e.values[0];
-                magneticField[1] = e.values[1];
-                magneticField[2] = e.values[2];
-            }*/
-        }else if((lmins == mins) && (lsecs == secs) && (lmilliseconds == milliseconds)) {
-            //the given time is the same as the previous recorded time
-
-            //do not print yet, perhaps there are other sensors that have not been recorded yet
-            //we want to only print one line which has all the possible sensor at that time
-            // do not want this to happen:
-            //  time(0:0:1), .56, .34, .24,  - ,  - ,  - , -  , -  , -
-            //  time(0:0:1),  - ,  - ,  - , .12, .23, .43, -  , -  , -
-            //  time(0:0:1),  - ,  - ,  - ,  - ,  - ,  - , .67, .78, .89
-            // we want this
-            //  time(0:0:1), .56, .34, .24, .12, .23, .43, .67, .78, .89
-            //record sensor data
-            if(e.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-                acceleration[0] = e.values[0];
-                acceleration[1] = e.values[1];
-                acceleration[2] = e.values[2];
-                acc_check = 1;
-            }
-            if(e.sensor.getType() == Sensor.TYPE_GYROSCOPE){
-                gyroscope[0] = e.values[0];
-                gyroscope[1] = e.values[1];
-                gyroscope[2] = e.values[2];
-                gyro_check = 1;
-            }
-            /*if(e.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD){
-                magneticField[0] = e.values[0];
-                magneticField[1] = e.values[1];
-                magneticField[2] = e.values[2];
-            }*/
-        }else{
-            //the given time is different from the previous recorded time
-            //this means that all the possible sensor data should be recorded now
-            //lets print out the data now
-
-            output += ", " + lmins  + ":" + lsecs + ":" + lmilliseconds;
-
-            for(float i: acceleration){
-                if(i == -1){
-                    output += ", -";
-                }else{
-                    output += ", " + i;
-                }
-            }
-
-            for(float i: gyroscope){
-                if(i == -1){
-                    output += ", -";
-                }else{
-                    output += ", " + i;
-                }
-            }
-/*
-            for(float i: magneticField){
-                if(i == -1){
-                    output += ", -\n";
-                }else{
-                    output += ", " + i;
-                }
-            }*/
+        //record sensor data
+        if(e.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+            output += "," + e.values[0] + "," + e.values[1] + "," + e.values[2];
             output += "\n";
-            //System.out.printf("acc_check is %d, and gyro check is %d\n", acc_check, gyro_check);
-            if(acc_check == 1 && gyro_check == 1) {
-                System.out.println(output + "\n");
-                acc_check = 0;
-                gyro_check = 0;
+            a.add(output);
+        }
 
-                try {
-                    out.write(output);
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                }
-            }
-
-            lmins = mins;
-            lsecs = secs;
-            lmilliseconds = milliseconds;
-
+        if(e.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
+            output += "," + e.values[0] + "," + e.values[1] + "," + e.values[2];
+            output += "\n";
+            g.add(output);
         }
     }
 
     protected void startRecording() throws IOException {
         //checks to make sure the phone has the sensors that we are recording from
-        if(sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null) {
+       if(sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null) {
             mAcc = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
             sm.registerListener(this, mAcc, SensorManager.SENSOR_DELAY_FASTEST);
         }
-        if(sm.getDefaultSensor(Sensor.TYPE_GYROSCOPE) != null) {
+       if(sm.getDefaultSensor(Sensor.TYPE_GYROSCOPE) != null) {
             gyro = sm.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
             sm.registerListener(this, gyro, SensorManager.SENSOR_DELAY_FASTEST);
         }
 
-        /*if(sm.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD) != null) {
-            magnetic = sm.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
-            sm.registerListener(this, magnetic, SensorManager.SENSOR_DELAY_NORMAL);
-        }*/
+        //File dataDir = new File(path, "Data");
+        //dataDir.mkdirs(); //make if not exist
+    }
+
+    protected void stopRecording() throws IOException{
+        sm.unregisterListener(this);
 
         //right now we will save the files to Documents
         //** we should change file save destination to the application folder later
         File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-
-        //File dataDir = new File(path, "Data");
-        //dataDir.mkdirs(); //make if not exist
-
         //file name is the current date and time
         cal = Calendar.getInstance(TimeZone.getDefault());
-        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS a");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_hh:mm:ss");
         String output = sdf.format(cal.getTime()).toString();
-        File file = new File(path, output + ".csv");
+        File file = new File(path, output+ "_A" + ".csv");
         FileOutputStream fos = new FileOutputStream(file);
         out = new BufferedWriter(new OutputStreamWriter(fos));
-
-        //start the stopwatch
-        starttime = SystemClock.uptimeMillis();
-        //want no delay in the stopwatch
-        handler.postDelayed(updateTimer, 0);
-    }
-
-    protected void stopRecording(){
-         sm.unregisterListener(this);
+        for( int i = 0; i < a.size(); i++){
+            try {
+                out.write(a.get(i));
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+        }
 
         try {
             if (out != null) {
@@ -274,18 +188,25 @@ public class TestEnvironmentActivity extends AppCompatActivity implements Sensor
             e.printStackTrace();
         }
 
-        //reset stopwatch information
-        starttime = 0L;
-        timeInMilliseconds = 0L;
-        secs = 0;
-        mins = 0;
-        milliseconds = 0;
-        lsecs = -1;
-        lmins = -1;
-        lmilliseconds = -1;
-        handler.removeCallbacks(updateTimer);
+        File file1 = new File(path, output + "_G" + ".csv");
+        FileOutputStream fos1 = new FileOutputStream(file1);
+        BufferedWriter out1 = new BufferedWriter(new OutputStreamWriter(fos1));
+        for( int i = 0; i < g.size(); i++){
+            try {
+                out1.write(g.get(i));
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+        }
 
-        // System.out.println(fOut.getAbsolutepath());
+        try {
+            if (out1 != null) {
+                out1.flush();
+                out1.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     protected void sendEmail() {
@@ -311,16 +232,4 @@ public class TestEnvironmentActivity extends AppCompatActivity implements Sensor
         }
     }
 
-    public Runnable updateTimer = new Runnable() {
-        public void run() {
-          //  System.out.println("in here");
-            timeInMilliseconds = SystemClock.uptimeMillis() - starttime;
-            secs = (int) (timeInMilliseconds / 1000);
-            mins = secs / 60;
-            secs = secs % 60;
-            milliseconds = (int) (timeInMilliseconds % 1000);
-            //do not delay
-            handler.postDelayed(this, 0);
-        }
-    };
 }

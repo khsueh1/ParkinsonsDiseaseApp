@@ -1,7 +1,10 @@
 package com.example.alex.parkinsonsdiseaseapp;
 
+import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -11,6 +14,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.SystemClock;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -40,26 +44,29 @@ public class TestEnvironmentActivity extends AppCompatActivity implements Sensor
 
     private Calendar cal;
 
-
-    long starttime = 0L;
-    long timeInMilliseconds = 0L;
-    int secs = 0;
-    int mins = 0;
-    int milliseconds = 0;
-    int lsecs = -1;
-    int lmins = -1;
-    int lmilliseconds = -1;
-
     List<String> a=new ArrayList<String>();
     List<String> g=new ArrayList<String>();
-    float[] acceleration = new float[3];
-    float[] gyroscope = new float[3];
-    float[] magneticField = new float[3];
-    int acc_check = 0, gyro_check=0;
 
+    // Storage Permissions
+    private static final int REQUEST_EXTERNAL_STORAGE = 1;
+    private static String[] PERMISSIONS_STORAGE = {
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+    };
 
+    public static void verifyStoragePermissions(Activity activity) {
+        // Check if we have write permission
+        int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
 
-    Handler handler = new Handler();
+        if (permission != PackageManager.PERMISSION_GRANTED) {
+            // We don't have permission so prompt the user
+            ActivityCompat.requestPermissions(
+                    activity,
+                    PERMISSIONS_STORAGE,
+                    REQUEST_EXTERNAL_STORAGE
+            );
+        }
+    }
 
 
     protected void onResume(){
@@ -161,6 +168,8 @@ public class TestEnvironmentActivity extends AppCompatActivity implements Sensor
     protected void stopRecording() throws IOException{
         sm.unregisterListener(this);
 
+        verifyStoragePermissions(this);
+
         //right now we will save the files to Documents
         //** we should change file save destination to the application folder later
         File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
@@ -168,7 +177,7 @@ public class TestEnvironmentActivity extends AppCompatActivity implements Sensor
         cal = Calendar.getInstance(TimeZone.getDefault());
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_hh:mm:ss");
         String output = sdf.format(cal.getTime()).toString();
-        File file = new File(path, output+ "_A" + ".csv");
+        File file = new File(path, output + "_A" + ".csv");
         FileOutputStream fos = new FileOutputStream(file);
         out = new BufferedWriter(new OutputStreamWriter(fos));
         for( int i = 0; i < a.size(); i++){

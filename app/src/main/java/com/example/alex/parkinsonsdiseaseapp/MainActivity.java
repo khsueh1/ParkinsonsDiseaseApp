@@ -50,7 +50,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         switch (view.getId()) {
             case R.id.testButton:
-                startActivity(new Intent(MainActivity.this, TestEnvironmentActivity.class));
+                startActivity(new Intent(MainActivity.this, RestingTremorsActivity.class));
                 break;
             default:
                 break;

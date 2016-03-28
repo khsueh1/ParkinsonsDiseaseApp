@@ -12,8 +12,6 @@ import android.hardware.SensorManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
-import android.os.SystemClock;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -24,7 +22,6 @@ import android.widget.Toast;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -34,7 +31,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.TimeZone;
 
-public class TestEnvironmentActivity extends AppCompatActivity implements SensorEventListener {
+public class RestingTremorsActivity extends AppCompatActivity implements SensorEventListener {
     private  SensorManager sm;
     private  Sensor mAcc;
     private Sensor gyro;
@@ -237,7 +234,7 @@ public class TestEnvironmentActivity extends AppCompatActivity implements Sensor
             Log.i("Finished sending email.", "");
         }
         catch (android.content.ActivityNotFoundException ex) {
-            Toast.makeText(TestEnvironmentActivity.this, "There is no email client installed.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(RestingTremorsActivity.this, "There is no email client installed.", Toast.LENGTH_SHORT).show();
         }
     }
 

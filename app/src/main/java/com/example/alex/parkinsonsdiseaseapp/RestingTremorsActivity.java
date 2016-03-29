@@ -30,19 +30,16 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.TimeZone;
+import java.util.logging.Handler;
 
 public class RestingTremorsActivity extends AppCompatActivity implements SensorEventListener {
-    private  SensorManager sm;
-    private  Sensor mAcc;
-    private Sensor gyro;
-    private Sensor magnetic;
-
+    private SensorManager sm;
+    private Sensor mAcc;
     private BufferedWriter out = null;
-
     private Calendar cal;
 
+    //will contain the accelerometer sensor data
     List<String> a=new ArrayList<String>();
-    List<String> g=new ArrayList<String>();
 
     // Storage Permissions
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
@@ -65,20 +62,14 @@ public class RestingTremorsActivity extends AppCompatActivity implements SensorE
         }
     }
 
-
     protected void onResume(){
         super.onResume();
-        sm.registerListener(this, mAcc, SensorManager.SENSOR_DELAY_NORMAL);
-        sm.registerListener(this, gyro, SensorManager.SENSOR_DELAY_NORMAL);
-       // sm.registerListener(this, magnetic, SensorManager.SENSOR_DELAY_NORMAL);
-        System.out.println("in onResume");
+        sm.registerListener(this, mAcc, SensorManager.SENSOR_DELAY_FASTEST);
     }
 
     protected void onPause(){
         super.onPause();
         sm.unregisterListener(this);
-        System.out.println("in onpause");
-
     }
 
     public void onAccuracyChanged(Sensor sensor, int accuracy){
@@ -93,11 +84,6 @@ public class RestingTremorsActivity extends AppCompatActivity implements SensorE
 
         sm = (SensorManager)getSystemService(SENSOR_SERVICE);
 
-        final Context context = getApplicationContext();
-        final CharSequence text = "Stop Button Pressed";
-        final int duration = Toast.LENGTH_SHORT;
-
-
         Button email = (Button) findViewById(R.id.emailButton);
 
         email.setOnClickListener(new View.OnClickListener() {
@@ -106,22 +92,15 @@ public class RestingTremorsActivity extends AppCompatActivity implements SensorE
             }
         });
 
-        Button start = (Button) findViewById(R.id.startButton);
+        final Button start = (Button) findViewById(R.id.startButton);
         start.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
                 try {
-                    startRecording();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-
-        Button stop = (Button) findViewById(R.id.stopButton);
-        stop.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View view) {
-                try {
-                    stopRecording();
+                    if (start.getText().toString().equals("Start")) {
+                        startRecording();
+                    } else {
+                        stopRecording();
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -139,44 +118,62 @@ public class RestingTremorsActivity extends AppCompatActivity implements SensorE
             output += "\n";
             a.add(output);
         }
-
-        if(e.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
-            output += "," + e.values[0] + "," + e.values[1] + "," + e.values[2];
-            output += "\n";
-            g.add(output);
-        }
     }
 
     protected void startRecording() throws IOException {
+        Button start;
+
         //checks to make sure the phone has the sensors that we are recording from
        if(sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null) {
             mAcc = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
             sm.registerListener(this, mAcc, SensorManager.SENSOR_DELAY_FASTEST);
         }
-       if(sm.getDefaultSensor(Sensor.TYPE_GYROSCOPE) != null) {
-            gyro = sm.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
-            sm.registerListener(this, gyro, SensorManager.SENSOR_DELAY_FASTEST);
-        }
+        a.clear();
 
-        //File dataDir = new File(path, "Data");
-        //dataDir.mkdirs(); //make if not exist
+        Toast.makeText(RestingTremorsActivity.this, "The test has begun.", Toast.LENGTH_SHORT).show();
+        start = (Button)findViewById(R.id.startButton);
+        start.setText("Stop");
     }
 
     protected void stopRecording() throws IOException{
+        String rootpath;
+        String folderpath;
+        String filepath;
+        File F;
+        Button start;
+
         sm.unregisterListener(this);
+        Toast.makeText(RestingTremorsActivity.this, "The test has stopped.", Toast.LENGTH_SHORT).show();
+        start = (Button)findViewById(R.id.startButton);
+        start.setText("Stop");
 
         verifyStoragePermissions(this);
 
-        //right now we will save the files to Documents
-        //** we should change file save destination to the application folder later
-        File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+        //make directories if they do not exist
+        rootpath = Environment.getExternalStorageDirectory().getPath().toString();
+        F = new File(rootpath, "Parkinsons");
+
+        if(!F.exists()) {
+            F.mkdirs();
+        }
+
+        folderpath = rootpath + "/Parkinsons";
+        F = new File(folderpath, "RestingTremors");
+        if(!F.exists()){
+            F.mkdirs();
+        }
+
+        filepath = folderpath + "/RestingTremors";
+
         //file name is the current date and time
         cal = Calendar.getInstance(TimeZone.getDefault());
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_hh:mm:ss");
         String output = sdf.format(cal.getTime()).toString();
-        File file = new File(path, output + "_A" + ".csv");
-        FileOutputStream fos = new FileOutputStream(file);
+
+        F = new File(filepath, output + "_A" + ".csv");
+        FileOutputStream fos = new FileOutputStream(F);
         out = new BufferedWriter(new OutputStreamWriter(fos));
+
         for( int i = 0; i < a.size(); i++){
             try {
                 out.write(a.get(i));
@@ -194,25 +191,9 @@ public class RestingTremorsActivity extends AppCompatActivity implements SensorE
             e.printStackTrace();
         }
 
-        File file1 = new File(path, output + "_G" + ".csv");
-        FileOutputStream fos1 = new FileOutputStream(file1);
-        BufferedWriter out1 = new BufferedWriter(new OutputStreamWriter(fos1));
-        for( int i = 0; i < g.size(); i++){
-            try {
-                out1.write(g.get(i));
-            } catch (IOException e1) {
-                e1.printStackTrace();
-            }
-        }
-
-        try {
-            if (out1 != null) {
-                out1.flush();
-                out1.close();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        a.clear();
+        //go back to the main screen
+        startActivity(new Intent(RestingTremorsActivity.this, MainActivity.class));
     }
 
     protected void sendEmail() {

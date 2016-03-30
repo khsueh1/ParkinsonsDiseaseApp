@@ -1,6 +1,7 @@
 package com.example.alex.parkinsonsdiseaseapp;
 
 import android.Manifest;
+import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -16,12 +17,19 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.PopupWindow;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -84,6 +92,8 @@ public class RestingTremorsActivity extends AppCompatActivity implements SensorE
 
         sm = (SensorManager)getSystemService(SENSOR_SERVICE);
 
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
         Button email = (Button) findViewById(R.id.emailButton);
 
         email.setOnClickListener(new View.OnClickListener() {
@@ -111,7 +121,7 @@ public class RestingTremorsActivity extends AppCompatActivity implements SensorE
     public void onSensorChanged(SensorEvent e) {
         cal = Calendar.getInstance(TimeZone.getDefault());
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
-        String output = sdf.format(cal.getTime()).toString();
+        String output = sdf.format(cal.getTime());
         //record sensor data
         if(e.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
             output += "," + e.values[0] + "," + e.values[1] + "," + e.values[2];
@@ -136,64 +146,99 @@ public class RestingTremorsActivity extends AppCompatActivity implements SensorE
     }
 
     protected void stopRecording() throws IOException{
-        String rootpath;
-        String folderpath;
-        String filepath;
-        File F;
         Button start;
 
         sm.unregisterListener(this);
         Toast.makeText(RestingTremorsActivity.this, "The test has stopped.", Toast.LENGTH_SHORT).show();
         start = (Button)findViewById(R.id.startButton);
-        start.setText("Stop");
+        start.setText("Start");
 
         verifyStoragePermissions(this);
 
-        //make directories if they do not exist
-        rootpath = Environment.getExternalStorageDirectory().getPath().toString();
-        F = new File(rootpath, "Parkinsons");
+        LayoutInflater layoutInflater
+                = (LayoutInflater)getBaseContext()
+                .getSystemService(LAYOUT_INFLATER_SERVICE);
+        View popupView = layoutInflater.inflate(R.layout.popup_element, null);
+        final PopupWindow popupWindow = new PopupWindow(
+                popupView,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT);
 
-        if(!F.exists()) {
-            F.mkdirs();
-        }
 
-        folderpath = rootpath + "/Parkinsons";
-        F = new File(folderpath, "RestingTremors");
-        if(!F.exists()){
-            F.mkdirs();
-        }
+        Button yes = (Button)popupView.findViewById(R.id.yes);
+        yes.setOnClickListener(new Button.OnClickListener() {
+            public void onClick(View v) {
+                String rootpath;
+                String folderpath;
+                String filepath;
+                File F;
 
-        filepath = folderpath + "/RestingTremors";
+                //make directories if they do not exist
+                rootpath = Environment.getExternalStorageDirectory().getPath();
+                F = new File(rootpath, "Parkinsons");
 
-        //file name is the current date and time
-        cal = Calendar.getInstance(TimeZone.getDefault());
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_hh:mm:ss");
-        String output = sdf.format(cal.getTime()).toString();
+                if(!F.exists()) {
+                    F.mkdirs();
+                }
 
-        F = new File(filepath, output + "_A" + ".csv");
-        FileOutputStream fos = new FileOutputStream(F);
-        out = new BufferedWriter(new OutputStreamWriter(fos));
+                folderpath = rootpath + "/Parkinsons";
+                F = new File(folderpath, "RestingTremors");
+                if(!F.exists()){
+                    F.mkdirs();
+                }
 
-        for( int i = 0; i < a.size(); i++){
-            try {
-                out.write(a.get(i));
-            } catch (IOException e1) {
-                e1.printStackTrace();
+                filepath = folderpath + "/RestingTremors";
+
+                //file name is the current date and time
+                cal = Calendar.getInstance(TimeZone.getDefault());
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_hh:mm:ss");
+                String output = sdf.format(cal.getTime());
+
+                F = new File(filepath, output + "_A" + ".csv");
+                FileOutputStream fos = null;
+                try {
+                    fos = new FileOutputStream(F);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+                out = new BufferedWriter(new OutputStreamWriter(fos));
+
+                for( int i = 0; i < a.size(); i++){
+                    try {
+                        out.write(a.get(i));
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                    }
+                }
+
+                try {
+                    if (out != null) {
+                        out.flush();
+                        out.close();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                a.clear();
+
+                Toast.makeText(RestingTremorsActivity.this, "File saved.", Toast.LENGTH_SHORT).show();
+
+                //go back to the main screen
+                startActivity(new Intent(RestingTremorsActivity.this, MainActivity.class));
             }
-        }
+        });
 
-        try {
-            if (out != null) {
-                out.flush();
-                out.close();
+        Button no = (Button)popupView.findViewById(R.id.no);
+        no.setOnClickListener(new Button.OnClickListener() {
+            public void onClick(View view) {
+                popupWindow.dismiss();
+                Toast.makeText(RestingTremorsActivity.this, "File not saved.", Toast.LENGTH_SHORT).show();
+                a.clear();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        });
 
-        a.clear();
-        //go back to the main screen
-        startActivity(new Intent(RestingTremorsActivity.this, MainActivity.class));
+        popupWindow.showAtLocation(this.findViewById(R.id.restingtremors), Gravity.CENTER, 0, 0);
     }
 
     protected void sendEmail() {
@@ -218,5 +263,4 @@ public class RestingTremorsActivity extends AppCompatActivity implements SensorE
             Toast.makeText(RestingTremorsActivity.this, "There is no email client installed.", Toast.LENGTH_SHORT).show();
         }
     }
-
 }

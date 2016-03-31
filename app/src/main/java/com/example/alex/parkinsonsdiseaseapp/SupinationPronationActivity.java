@@ -11,8 +11,6 @@ import android.hardware.SensorManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -24,6 +22,7 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.PopupWindow;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.BufferedWriter;
@@ -46,7 +45,7 @@ public class SupinationPronationActivity extends AppCompatActivity implements Se
     private Calendar cal;
 
     //will contain the accelerometer sensor data
-    List<String> a=new ArrayList<String>();
+    List<String> a = new ArrayList<String>();
     List<String> g = new ArrayList<String>();
 
     // Storage Permissions
@@ -69,7 +68,6 @@ public class SupinationPronationActivity extends AppCompatActivity implements Se
             );
         }
     }
-
 
     protected void onResume(){
         super.onResume();
@@ -148,7 +146,7 @@ public class SupinationPronationActivity extends AppCompatActivity implements Se
         }
 
         if(sm.getDefaultSensor(Sensor.TYPE_GYROSCOPE) != null) {
-            mAcc = sm.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
+            gyro = sm.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
             sm.registerListener(this, gyro, SensorManager.SENSOR_DELAY_FASTEST);
         }
 
@@ -174,6 +172,10 @@ public class SupinationPronationActivity extends AppCompatActivity implements Se
                 = (LayoutInflater)getBaseContext()
                 .getSystemService(LAYOUT_INFLATER_SERVICE);
         View popupView = layoutInflater.inflate(R.layout.popup_element, null);
+
+        TextView tv1 = (TextView)popupView.findViewById(R.id.textView1);
+        tv1.setText("Save Supination Pronation test data?");
+
         final PopupWindow popupWindow = new PopupWindow(
                 popupView,
                 ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -184,6 +186,7 @@ public class SupinationPronationActivity extends AppCompatActivity implements Se
             public void onClick(View v) {
                 String rootpath;
                 String folderpath;
+                String datepath;
                 String filepath;
                 File F;
 
@@ -201,12 +204,17 @@ public class SupinationPronationActivity extends AppCompatActivity implements Se
                     F.mkdirs();
                 }
 
-                filepath = folderpath + "/SupinationPronation";
+                datepath = folderpath + "/SupinationPronation";
 
                 //file name is the current date and time
                 cal = Calendar.getInstance(TimeZone.getDefault());
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_hh:mm:ss");
                 String output = sdf.format(cal.getTime());
+
+                filepath = datepath + "/" + output;
+
+                F = new File(datepath, output);
+                F.mkdirs();
 
                 F = new File(filepath, output + "_A" + ".csv");
                 FileOutputStream fos = null;
@@ -265,7 +273,6 @@ public class SupinationPronationActivity extends AppCompatActivity implements Se
 
                 g.clear();
 
-
                 Toast.makeText(SupinationPronationActivity.this, "File saved.", Toast.LENGTH_SHORT).show();
 
                 //go back to the main screen
@@ -279,10 +286,11 @@ public class SupinationPronationActivity extends AppCompatActivity implements Se
                 popupWindow.dismiss();
                 Toast.makeText(SupinationPronationActivity.this, "File not saved.", Toast.LENGTH_SHORT).show();
                 a.clear();
+                g.clear();
             }
         });
 
-        popupWindow.showAtLocation(this.findViewById(R.id.restingtremors), Gravity.CENTER, 0, 0);
+        popupWindow.showAtLocation(this.findViewById(R.id.supinationpronation), Gravity.CENTER, 0, 0);
     }
 
     protected void sendEmail() {
@@ -307,5 +315,4 @@ public class SupinationPronationActivity extends AppCompatActivity implements Se
             Toast.makeText(SupinationPronationActivity.this, "There is no email client installed.", Toast.LENGTH_SHORT).show();
         }
     }
-
 }

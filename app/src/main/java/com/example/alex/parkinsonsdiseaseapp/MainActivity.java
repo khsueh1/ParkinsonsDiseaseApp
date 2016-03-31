@@ -10,7 +10,9 @@ import android.widget.Button;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
-    Button startTestButton;
+    Button restingTremorsButton;
+    Button supAndProButton;
+    Button fingerTappingButton;
 
 
     @Override
@@ -18,8 +20,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        startTestButton = (Button) findViewById(R.id.testButton);
-        startTestButton.setOnClickListener(this);
+        restingTremorsButton = (Button) findViewById(R.id.testButton);
+        restingTremorsButton.setOnClickListener(this);
+
+        supAndProButton = (Button) findViewById(R.id.supAndPro);
+        supAndProButton.setOnClickListener(this);
+
+        fingerTappingButton = (Button) findViewById(R.id.fingerTapping);
+        fingerTappingButton.setOnClickListener(this);
 
     }
 
@@ -52,6 +60,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.testButton:
                 startActivity(new Intent(MainActivity.this, RestingTremorsActivity.class));
                 break;
+            case R.id.supAndPro:
+                startActivity(new Intent(MainActivity.this, SupinationPronationActivity.class));
+                break;
+            case R.id.fingerTapping:
+                startActivity(new Intent(MainActivity.this, RestingTremorsActivity.class));
             default:
                 break;
         }

@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 startActivity(new Intent(MainActivity.this, SupinationPronationActivity.class));
                 break;
             case R.id.fingerTapping:
-                startActivity(new Intent(MainActivity.this, RestingTremorsActivity.class));
+                startActivity(new Intent(MainActivity.this, FingerTappingActivity.class));
             default:
                 break;
         }

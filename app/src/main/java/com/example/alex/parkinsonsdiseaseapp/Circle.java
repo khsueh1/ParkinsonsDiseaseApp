@@ -18,6 +18,7 @@ public class Circle extends View {
     private Random random = new Random();
 
 
+    // draws circle
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -26,6 +27,7 @@ public class Circle extends View {
         canvas.drawCircle(x, y, r, mPaint);
     }
 
+    // constructors
     public Circle(Context context) {
         super(context);
         init();
@@ -46,6 +48,7 @@ public class Circle extends View {
     }
 
 
+    // gets random number
     void generateRandom() {
 
         System.out.println("width = " + getWidth());
@@ -66,6 +69,8 @@ public class Circle extends View {
     }
 
 
+
+    // when screen is tapped, old circle removed, new circle drawn
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         generateRandom();

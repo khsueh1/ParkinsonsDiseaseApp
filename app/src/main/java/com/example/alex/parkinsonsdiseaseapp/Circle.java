@@ -48,7 +48,7 @@ public class Circle extends View {
     }
 
 
-    // gets random number
+    // gets random number,
     void generateRandom() {
 
         System.out.println("width = " + getWidth());

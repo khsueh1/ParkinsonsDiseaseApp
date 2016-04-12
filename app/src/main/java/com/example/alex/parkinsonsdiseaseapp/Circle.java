@@ -79,6 +79,6 @@ public class Circle extends View {
         float dy = (y - yPoint);
         float dyPow = (float) Math.pow(dy, 2);
         float radPow = (float) Math.pow(r, 2);
-        return (dxPow + dyPow) < radPow || (dxPow + dyPow == radPow);
+        return ((dxPow + dyPow) <= radPow);
     }
 }

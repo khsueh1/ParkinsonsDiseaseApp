@@ -18,3 +18,4 @@
     <include layout="@layout/content_resting_tremors" />
 
 </android.support.design.widget.CoordinatorLayout>
+

@@ -2,6 +2,8 @@ package com.example.alex.parkinsonsdiseaseapp;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
@@ -14,15 +16,9 @@ import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
-import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.PopupWindow;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.BufferedWriter;
@@ -34,7 +30,6 @@ import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 
@@ -170,139 +165,133 @@ public class ConfigurationActivity extends AppCompatActivity implements SensorEv
         fileOrDirectory.delete();
     }
 
+    private void showSimplePopUp() {
 
+        AlertDialog.Builder helpBuilder = new AlertDialog.Builder(this);
+        helpBuilder.setTitle("New Configuration File");
+        helpBuilder.setMessage("Save configuration file?");
+        helpBuilder.setPositiveButton("Save",
+                new DialogInterface.OnClickListener() {
+
+                    public void onClick(DialogInterface dialog, int which) {
+                        //save the data
+                        String rootpath;
+                        String folderpath;
+                        String filepath;
+                        File F;
+
+                        //make directories if they do not exist
+                        rootpath = Environment.getExternalStorageDirectory().getPath();
+                        F = new File(rootpath, "Parkinsons");
+
+                        if (!F.exists()) {
+                            F.mkdirs();
+                        }
+
+                        folderpath = rootpath + "/Parkinsons";
+                        F = new File(folderpath, "Configuration");
+                        if (!F.exists()) {
+                            F.mkdirs();
+                        }else {
+                            deleteRecursive(F);
+                            F.mkdirs();
+                        }
+
+                        filepath = folderpath + "/Configuration";
+
+
+                        F = new File(filepath, "Configuration_A" + ".csv");
+
+                        FileOutputStream fos = null;
+                        try {
+                            fos = new FileOutputStream(F);
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                        }
+                        out = new BufferedWriter(new OutputStreamWriter(fos));
+
+                        for (int i = 0; i < a.size(); i++) {
+                            try {
+                                out.write(a.get(i));
+                            } catch (IOException e1) {
+                                e1.printStackTrace();
+                            }
+                        }
+
+                        try {
+                            if (out != null) {
+                                out.flush();
+                                out.close();
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                        a.clear();
+
+                        //file name is the current date and time
+                        F = new File(filepath, "Configuration_G" + ".csv");
+                        fos = null;
+                        try {
+                            fos = new FileOutputStream(F);
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                        }
+                        out = new BufferedWriter(new OutputStreamWriter(fos));
+
+                        for( int i = 0; i < g.size(); i++){
+                            try {
+                                out.write(g.get(i));
+                            } catch (IOException e1) {
+                                e1.printStackTrace();
+                            }
+                        }
+
+                        try {
+                            if (out != null) {
+                                out.flush();
+                                out.close();
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                        g.clear();
+
+                        Toast.makeText(ConfigurationActivity.this, "File saved.", Toast.LENGTH_SHORT).show();
+
+                        //go back to the main screen
+                        startActivity(new Intent(ConfigurationActivity.this, MainActivity.class));
+                    }
+                });
+
+        helpBuilder.setNegativeButton("Discard",
+                new DialogInterface.OnClickListener() {
+
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Do nothing but close the dialog
+                        a.clear();
+                        g.clear();
+                    }
+                });
+
+        // Remember, create doesn't show the dialog
+        AlertDialog helpDialog = helpBuilder.create();
+        helpDialog.setCancelable(false);
+        helpDialog.setCanceledOnTouchOutside(false);
+        helpDialog.show();
+    }
 
     protected void stopRecording() throws IOException {
+        Button start;
+
         sm.unregisterListener(this);
         Toast.makeText(ConfigurationActivity.this, "The test has stopped.", Toast.LENGTH_SHORT).show();
+        start = (Button) findViewById(R.id.startButton);
+        start.setText("Start");
 
         verifyStoragePermissions(this);
 
-        LayoutInflater layoutInflater
-                = (LayoutInflater) getBaseContext()
-                .getSystemService(LAYOUT_INFLATER_SERVICE);
-        View popupView = layoutInflater.inflate(R.layout.popup_element, null);
-
-        TextView tv1 = (TextView) popupView.findViewById(R.id.textView1);
-        tv1.setText("Save Configuration test data?");
-
-        final PopupWindow popupWindow = new PopupWindow(
-                popupView,
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT);
-
-        Button yes = (Button) popupView.findViewById(R.id.yes);
-        yes.setOnClickListener(new Button.OnClickListener() {
-            public void onClick(View v) {
-                String rootpath;
-                String folderpath;
-                String datepath;
-                String filepath;
-                File F;
-
-                //make directories if they do not exist
-                rootpath = Environment.getExternalStorageDirectory().getPath();
-                F = new File(rootpath, "Parkinsons");
-
-                if (!F.exists()) {
-                    F.mkdirs();
-                }
-
-                folderpath = rootpath + "/Parkinsons";
-                F = new File(folderpath, "Configuration");
-                if (!F.exists()) {
-                    F.mkdirs();
-                }else{
-                    deleteRecursive(F);
-                    F.mkdirs();
-                }
-
-                datepath = folderpath + "/Configuration";
-
-                //file name is the current date and time
-                cal = Calendar.getInstance(TimeZone.getDefault());
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_hh:mm:ss");
-                String output = sdf.format(cal.getTime());
-
-                F = new File(datepath, output + "_C_A" + ".csv");
-                FileOutputStream fos = null;
-                try {
-                    fos = new FileOutputStream(F);
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                }
-                out = new BufferedWriter(new OutputStreamWriter(fos));
-
-                for (int i = 0; i < a.size(); i++) {
-                    try {
-                        out.write(a.get(i));
-                    } catch (IOException e1) {
-                        e1.printStackTrace();
-                    }
-                }
-
-                try {
-                    if (out != null) {
-                        out.flush();
-                        out.close();
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                a.clear();
-
-                //file name is the current date and time
-                F = new File(datepath, output + "_C_G" + ".csv");
-                fos = null;
-                try {
-                    fos = new FileOutputStream(F);
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                }
-                out = new BufferedWriter(new OutputStreamWriter(fos));
-
-                for (int i = 0; i < g.size(); i++) {
-                    try {
-                        out.write(g.get(i));
-                    } catch (IOException e1) {
-                        e1.printStackTrace();
-                    }
-                }
-
-                try {
-                    if (out != null) {
-                        out.flush();
-                        out.close();
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                g.clear();
-
-                Toast.makeText(ConfigurationActivity.this, "File saved.", Toast.LENGTH_SHORT).show();
-
-                //go back to the main screen
-                startActivity(new Intent(ConfigurationActivity.this, MainActivity.class));
-            }
-        });
-
-        Button no = (Button) popupView.findViewById(R.id.no);
-        no.setOnClickListener(new Button.OnClickListener() {
-            public void onClick(View view) {
-                Button start;
-
-                start = (Button) findViewById(R.id.startButton);
-                start.setVisibility(View.VISIBLE);
-
-                popupWindow.dismiss();
-                Toast.makeText(ConfigurationActivity.this, "File not saved.", Toast.LENGTH_SHORT).show();
-                a.clear();
-                g.clear();
-            }
-        });
-
-        popupWindow.showAtLocation(this.findViewById(R.id.configuration), Gravity.CENTER, 0, 0);
+        showSimplePopUp();
     }
 }

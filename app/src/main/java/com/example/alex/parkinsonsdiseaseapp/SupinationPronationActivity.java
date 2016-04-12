@@ -2,6 +2,8 @@ package com.example.alex.parkinsonsdiseaseapp;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
@@ -15,14 +17,9 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.PopupWindow;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.BufferedWriter;
@@ -158,139 +155,142 @@ public class SupinationPronationActivity extends AppCompatActivity implements Se
         start.setText("Stop");
     }
 
+    private void showSimplePopUp() {
+
+        AlertDialog.Builder helpBuilder = new AlertDialog.Builder(this);
+        helpBuilder.setTitle("New Supination Pronation File");
+        helpBuilder.setMessage("Save supination pronation file?");
+        helpBuilder.setPositiveButton("Save",
+                new DialogInterface.OnClickListener() {
+
+                    public void onClick(DialogInterface dialog, int which) {
+                        //save the data
+                        String rootpath;
+                        String folderpath;
+                        String filepath;
+                        File F;
+
+                        //make directories if they do not exist
+                        rootpath = Environment.getExternalStorageDirectory().getPath();
+                        F = new File(rootpath, "Parkinsons");
+
+                        if (!F.exists()) {
+                            F.mkdirs();
+                        }
+
+                        folderpath = rootpath + "/Parkinsons";
+                        F = new File(folderpath, "SupinationPronation");
+                        if (!F.exists()) {
+                            F.mkdirs();
+                        }
+
+                        filepath = folderpath + "/SupinationPronation";
+
+                        //file name is the current date and time
+                        cal = Calendar.getInstance(TimeZone.getDefault());
+                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_hh:mm:ss");
+                        String output = sdf.format(cal.getTime());
+
+                        F = new File(filepath, output);
+                        if (!F.exists()) {
+                            F.mkdirs();
+                        }
+
+                        filepath += "/" + output;
+
+                        F = new File(filepath, output + "_SP_A" + ".csv");
+                        FileOutputStream fos = null;
+                        try {
+                            fos = new FileOutputStream(F);
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                        }
+                        out = new BufferedWriter(new OutputStreamWriter(fos));
+
+                        for (int i = 0; i < a.size(); i++) {
+                            try {
+                                out.write(a.get(i));
+                            } catch (IOException e1) {
+                                e1.printStackTrace();
+                            }
+                        }
+
+                        try {
+                            if (out != null) {
+                                out.flush();
+                                out.close();
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                        a.clear();
+
+                        //file name is the current date and time
+                        F = new File(filepath, output + "_SP_G" + ".csv");
+                        fos = null;
+                        try {
+                            fos = new FileOutputStream(F);
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                        }
+                        out = new BufferedWriter(new OutputStreamWriter(fos));
+
+                        for( int i = 0; i < g.size(); i++){
+                            try {
+                                out.write(g.get(i));
+                            } catch (IOException e1) {
+                                e1.printStackTrace();
+                            }
+                        }
+
+                        try {
+                            if (out != null) {
+                                out.flush();
+                                out.close();
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                        g.clear();
+
+                        Toast.makeText(SupinationPronationActivity.this, "File saved.", Toast.LENGTH_SHORT).show();
+
+                        //go back to the main screen
+                        startActivity(new Intent(SupinationPronationActivity.this, MainActivity.class));
+                    }
+                });
+
+        helpBuilder.setNegativeButton("Discard",
+                new DialogInterface.OnClickListener() {
+
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Do nothing but close the dialog
+                        a.clear();
+                        g.clear();
+                    }
+                });
+
+        // Remember, create doesn't show the dialog
+        AlertDialog helpDialog = helpBuilder.create();
+        helpDialog.setCancelable(false);
+        helpDialog.setCanceledOnTouchOutside(false);
+        helpDialog.show();
+    }
+
+
     protected void stopRecording() throws IOException{
         Button start;
 
         sm.unregisterListener(this);
         Toast.makeText(SupinationPronationActivity.this, "The test has stopped.", Toast.LENGTH_SHORT).show();
-        start = (Button)findViewById(R.id.startButton);
+        start = (Button) findViewById(R.id.startButton);
         start.setText("Start");
 
         verifyStoragePermissions(this);
 
-        LayoutInflater layoutInflater
-                = (LayoutInflater)getBaseContext()
-                .getSystemService(LAYOUT_INFLATER_SERVICE);
-        View popupView = layoutInflater.inflate(R.layout.popup_element, null);
-
-        TextView tv1 = (TextView)popupView.findViewById(R.id.textView1);
-        tv1.setText("Save Supination Pronation test data?");
-
-        final PopupWindow popupWindow = new PopupWindow(
-                popupView,
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT);
-
-        Button yes = (Button)popupView.findViewById(R.id.yes);
-        yes.setOnClickListener(new Button.OnClickListener() {
-            public void onClick(View v) {
-                String rootpath;
-                String folderpath;
-                String datepath;
-                String filepath;
-                File F;
-
-                //make directories if they do not exist
-                rootpath = Environment.getExternalStorageDirectory().getPath();
-                F = new File(rootpath, "Parkinsons");
-
-                if(!F.exists()) {
-                    F.mkdirs();
-                }
-
-                folderpath = rootpath + "/Parkinsons";
-                F = new File(folderpath, "SupinationPronation");
-                if(!F.exists()){
-                    F.mkdirs();
-                }
-
-                datepath = folderpath + "/SupinationPronation";
-
-                //file name is the current date and time
-                cal = Calendar.getInstance(TimeZone.getDefault());
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_hh:mm:ss");
-                String output = sdf.format(cal.getTime());
-
-                filepath = datepath + "/" + output;
-
-                F = new File(datepath, output);
-                F.mkdirs();
-
-                F = new File(filepath, output + "_SP_A" + ".csv");
-                FileOutputStream fos = null;
-                try {
-                    fos = new FileOutputStream(F);
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                }
-                out = new BufferedWriter(new OutputStreamWriter(fos));
-
-                for( int i = 0; i < a.size(); i++){
-                    try {
-                        out.write(a.get(i));
-                    } catch (IOException e1) {
-                        e1.printStackTrace();
-                    }
-                }
-
-                try {
-                    if (out != null) {
-                        out.flush();
-                        out.close();
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                a.clear();
-
-                //file name is the current date and time
-                F = new File(filepath, output + "_SP_G" + ".csv");
-                fos = null;
-                try {
-                    fos = new FileOutputStream(F);
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                }
-                out = new BufferedWriter(new OutputStreamWriter(fos));
-
-                for( int i = 0; i < g.size(); i++){
-                    try {
-                        out.write(g.get(i));
-                    } catch (IOException e1) {
-                        e1.printStackTrace();
-                    }
-                }
-
-                try {
-                    if (out != null) {
-                        out.flush();
-                        out.close();
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                g.clear();
-
-                Toast.makeText(SupinationPronationActivity.this, "File saved.", Toast.LENGTH_SHORT).show();
-
-                //go back to the main screen
-                startActivity(new Intent(SupinationPronationActivity.this, MainActivity.class));
-            }
-        });
-
-        Button no = (Button)popupView.findViewById(R.id.no);
-        no.setOnClickListener(new Button.OnClickListener() {
-            public void onClick(View view) {
-                popupWindow.dismiss();
-                Toast.makeText(SupinationPronationActivity.this, "File not saved.", Toast.LENGTH_SHORT).show();
-                a.clear();
-                g.clear();
-            }
-        });
-
-        popupWindow.showAtLocation(this.findViewById(R.id.supinationpronation), Gravity.CENTER, 0, 0);
+        showSimplePopUp();
     }
 
     protected void sendEmail() {

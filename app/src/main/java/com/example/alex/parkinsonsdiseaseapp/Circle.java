@@ -7,7 +7,9 @@ import android.view.View;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.Random;
 
 public class Circle extends View {
@@ -16,7 +18,19 @@ public class Circle extends View {
     private int r = 150;
     private final Paint mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Random random = new Random();
+    private ArrayList<ArrayList<Double>> distances;
+    int flag = 1;
+    Data cData;
 
+    public class Data {
+        int count;
+        ArrayList <Double> singleDist;
+
+        public Data() {
+            this.count = 0;
+            this.singleDist = new ArrayList<Double>();
+        }
+    }
 
     // draws circle
     @Override
@@ -52,7 +66,7 @@ public class Circle extends View {
     void generateRandom() {
 
         int w = getWidth() - r - 50;
-        int h = getHeight()- r - 50;
+        int h = getHeight() - r - 50;
 
         int border = r + 50;
 
@@ -65,13 +79,34 @@ public class Circle extends View {
     // when screen is tapped, old circle removed, new circle drawn
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        if (flag == 1) {
+            flag = 0;
+            distances = new ArrayList<ArrayList<Double>>();
+            cData = new Data();
+
+        }
+
         if (isInsideCircle(event.getX(), event.getY())) {
+            distances.add(cData.singleDist);
+            cData = new Data();
+
             generateRandom();
             invalidate();
         }
+
+        else {
+            cData.count += 1;
+            distance(event.getX(), event.getY(), cData.singleDist);
+            System.out.println("Distance " + cData.count + " = " + cData.singleDist.get(cData.singleDist.size() - 1));
+        }
+
         return super.onTouchEvent(event);
     }
 
+
+    void distance(double newX, double newY, ArrayList <Double> data) {
+        data.add(Math.sqrt(Math.pow(x - newX, 2) + Math.pow(y - newY, 2)));
+    }
 
     boolean isInsideCircle(float xPoint, float yPoint) {
         float dx = (x - xPoint);

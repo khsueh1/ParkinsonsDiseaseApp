@@ -51,21 +51,13 @@ public class Circle extends View {
     // gets random number,,
     void generateRandom() {
 
-        System.out.println("width = " + getWidth());
-        System.out.println("height = " + getHeight());
         int w = getWidth() - r - 50;
         int h = getHeight()- r - 50;
-
-        System.out.println("w = " + w);
-        System.out.println("h = " + h);
 
         int border = r + 50;
 
         this.x = border + random.nextInt(w-border);
         this.y = border + random.nextInt(h-border);
-
-        System.out.println("x = " + x);
-        System.out.println("y = " + y);
     }
 
 
@@ -73,8 +65,20 @@ public class Circle extends View {
     // when screen is tapped, old circle removed, new circle drawn
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        generateRandom();
-        invalidate();
+        if (isInsideCircle(event.getX(), event.getY())) {
+            generateRandom();
+            invalidate();
+        }
         return super.onTouchEvent(event);
+    }
+
+
+    boolean isInsideCircle(float xPoint, float yPoint) {
+        float dx = (x - xPoint);
+        float dxPow = (float) Math.pow(dx, 2);
+        float dy = (y - yPoint);
+        float dyPow = (float) Math.pow(dy, 2);
+        float radPow = (float) Math.pow(r, 2);
+        return (dxPow + dyPow) < radPow || (dxPow + dyPow == radPow);
     }
 }

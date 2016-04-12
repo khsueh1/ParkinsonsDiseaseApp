@@ -21,17 +21,21 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".ConfigurationActivity"
+            android:label="@string/title_activity_configuration"
+            android:theme="@style/AppTheme.NoActionBar"/>
+        <activity
             android:name=".SupinationPronationActivity"
             android:label="@string/title_activity_test"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar"/>
         <activity
             android:name=".RestingTremorsActivity"
             android:label="@string/title_activity_gryoscope_test"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar"/>
         <activity
             android:name=".FingerTappingActivity"
             android:label="@string/title_activity_finger_tapping"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar"/>
     </application>
 
 </manifest>

@@ -8,8 +8,8 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.net.Uri;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -34,10 +34,11 @@ import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 
-public class SupinationPronationActivity extends AppCompatActivity implements SensorEventListener{
+public class ConfigurationActivity extends AppCompatActivity implements SensorEventListener {
     private SensorManager sm;
     private Sensor mAcc;
     private Sensor gyro;
@@ -45,7 +46,7 @@ public class SupinationPronationActivity extends AppCompatActivity implements Se
     private Calendar cal;
 
     //will contain the accelerometer sensor data
-    List<String> a = new ArrayList<>();
+    List<String> a=new ArrayList<>();
     List<String> g = new ArrayList<>();
 
     // Storage Permissions
@@ -86,7 +87,7 @@ public class SupinationPronationActivity extends AppCompatActivity implements Se
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_supinationpronation);
+        setContentView(R.layout.activity_configuration);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -94,23 +95,11 @@ public class SupinationPronationActivity extends AppCompatActivity implements Se
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        Button email = (Button) findViewById(R.id.emailButton);
-
-        email.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View view) {
-                sendEmail();
-            }
-        });
-
         final Button start = (Button) findViewById(R.id.startButton);
         start.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
                 try {
-                    if (start.getText().toString().equals("Start")) {
-                        startRecording();
-                    } else {
-                        stopRecording();
-                    }
+                    startRecording();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -139,6 +128,9 @@ public class SupinationPronationActivity extends AppCompatActivity implements Se
     protected void startRecording() throws IOException {
         Button start;
 
+        a.clear();
+        g.clear();
+
         //checks to make sure the phone has the sensors that we are recording from
         if(sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null) {
             mAcc = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -150,38 +142,56 @@ public class SupinationPronationActivity extends AppCompatActivity implements Se
             sm.registerListener(this, gyro, SensorManager.SENSOR_DELAY_FASTEST);
         }
 
-        a.clear();
-        g.clear();
+        Toast.makeText(ConfigurationActivity.this, "The test has begun.", Toast.LENGTH_SHORT).show();
 
-        Toast.makeText(SupinationPronationActivity.this, "The test has begun.", Toast.LENGTH_SHORT).show();
+        new CountDownTimer(5000, 1000) {
+
+            public void onTick(long millisUntilFinished) {
+            }
+
+            public void onFinish() {
+                try {
+                    stopRecording();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }.start();
+
         start = (Button)findViewById(R.id.startButton);
-        start.setText("Stop");
+        start.setVisibility(View.INVISIBLE);
     }
 
-    protected void stopRecording() throws IOException{
-        Button start;
+    void deleteRecursive(File fileOrDirectory) {
+        if (fileOrDirectory.isDirectory())
+            for (File child : fileOrDirectory.listFiles())
+                deleteRecursive(child);
 
+        fileOrDirectory.delete();
+    }
+
+
+
+    protected void stopRecording() throws IOException {
         sm.unregisterListener(this);
-        Toast.makeText(SupinationPronationActivity.this, "The test has stopped.", Toast.LENGTH_SHORT).show();
-        start = (Button)findViewById(R.id.startButton);
-        start.setText("Start");
+        Toast.makeText(ConfigurationActivity.this, "The test has stopped.", Toast.LENGTH_SHORT).show();
 
         verifyStoragePermissions(this);
 
         LayoutInflater layoutInflater
-                = (LayoutInflater)getBaseContext()
+                = (LayoutInflater) getBaseContext()
                 .getSystemService(LAYOUT_INFLATER_SERVICE);
         View popupView = layoutInflater.inflate(R.layout.popup_element, null);
 
-        TextView tv1 = (TextView)popupView.findViewById(R.id.textView1);
-        tv1.setText("Save Supination Pronation test data?");
+        TextView tv1 = (TextView) popupView.findViewById(R.id.textView1);
+        tv1.setText("Save Configuration test data?");
 
         final PopupWindow popupWindow = new PopupWindow(
                 popupView,
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT);
 
-        Button yes = (Button)popupView.findViewById(R.id.yes);
+        Button yes = (Button) popupView.findViewById(R.id.yes);
         yes.setOnClickListener(new Button.OnClickListener() {
             public void onClick(View v) {
                 String rootpath;
@@ -194,29 +204,27 @@ public class SupinationPronationActivity extends AppCompatActivity implements Se
                 rootpath = Environment.getExternalStorageDirectory().getPath();
                 F = new File(rootpath, "Parkinsons");
 
-                if(!F.exists()) {
+                if (!F.exists()) {
                     F.mkdirs();
                 }
 
                 folderpath = rootpath + "/Parkinsons";
-                F = new File(folderpath, "SupinationPronation");
-                if(!F.exists()){
+                F = new File(folderpath, "Configuration");
+                if (!F.exists()) {
+                    F.mkdirs();
+                }else{
+                    deleteRecursive(F);
                     F.mkdirs();
                 }
 
-                datepath = folderpath + "/SupinationPronation";
+                datepath = folderpath + "/Configuration";
 
                 //file name is the current date and time
                 cal = Calendar.getInstance(TimeZone.getDefault());
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_hh:mm:ss");
                 String output = sdf.format(cal.getTime());
 
-                filepath = datepath + "/" + output;
-
-                F = new File(datepath, output);
-                F.mkdirs();
-
-                F = new File(filepath, output + "_SP_A" + ".csv");
+                F = new File(datepath, output + "_C_A" + ".csv");
                 FileOutputStream fos = null;
                 try {
                     fos = new FileOutputStream(F);
@@ -225,7 +233,7 @@ public class SupinationPronationActivity extends AppCompatActivity implements Se
                 }
                 out = new BufferedWriter(new OutputStreamWriter(fos));
 
-                for( int i = 0; i < a.size(); i++){
+                for (int i = 0; i < a.size(); i++) {
                     try {
                         out.write(a.get(i));
                     } catch (IOException e1) {
@@ -245,7 +253,7 @@ public class SupinationPronationActivity extends AppCompatActivity implements Se
                 a.clear();
 
                 //file name is the current date and time
-                F = new File(filepath, output + "_SP_G" + ".csv");
+                F = new File(datepath, output + "_C_G" + ".csv");
                 fos = null;
                 try {
                     fos = new FileOutputStream(F);
@@ -254,7 +262,7 @@ public class SupinationPronationActivity extends AppCompatActivity implements Se
                 }
                 out = new BufferedWriter(new OutputStreamWriter(fos));
 
-                for( int i = 0; i < g.size(); i++){
+                for (int i = 0; i < g.size(); i++) {
                     try {
                         out.write(g.get(i));
                     } catch (IOException e1) {
@@ -273,46 +281,28 @@ public class SupinationPronationActivity extends AppCompatActivity implements Se
 
                 g.clear();
 
-                Toast.makeText(SupinationPronationActivity.this, "File saved.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(ConfigurationActivity.this, "File saved.", Toast.LENGTH_SHORT).show();
 
                 //go back to the main screen
-                startActivity(new Intent(SupinationPronationActivity.this, MainActivity.class));
+                startActivity(new Intent(ConfigurationActivity.this, MainActivity.class));
             }
         });
 
-        Button no = (Button)popupView.findViewById(R.id.no);
+        Button no = (Button) popupView.findViewById(R.id.no);
         no.setOnClickListener(new Button.OnClickListener() {
             public void onClick(View view) {
+                Button start;
+
+                start = (Button) findViewById(R.id.startButton);
+                start.setVisibility(View.VISIBLE);
+
                 popupWindow.dismiss();
-                Toast.makeText(SupinationPronationActivity.this, "File not saved.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(ConfigurationActivity.this, "File not saved.", Toast.LENGTH_SHORT).show();
                 a.clear();
                 g.clear();
             }
         });
 
-        popupWindow.showAtLocation(this.findViewById(R.id.supinationpronation), Gravity.CENTER, 0, 0);
-    }
-
-    protected void sendEmail() {
-        Log.i("Send email", "");
-        String[] TO = {""};
-        String[] CC = {""};
-        Intent emailIntent = new Intent(Intent.ACTION_SEND);
-
-        emailIntent.setData(Uri.parse("mailto:"));
-        emailIntent.setType("text/plain");
-        emailIntent.putExtra(Intent.EXTRA_EMAIL, TO);
-        emailIntent.putExtra(Intent.EXTRA_CC, CC);
-        emailIntent.putExtra(Intent.EXTRA_SUBJECT, "test");
-        //emailIntent.putExtra(Intent.EXTRA_TEXT, "Email message goes here");
-
-        try {
-            startActivity(Intent.createChooser(emailIntent, "Send mail..."));
-            finish();
-            Log.i("Finished sending email.", "");
-        }
-        catch (android.content.ActivityNotFoundException ex) {
-            Toast.makeText(SupinationPronationActivity.this, "There is no email client installed.", Toast.LENGTH_SHORT).show();
-        }
+        popupWindow.showAtLocation(this.findViewById(R.id.configuration), Gravity.CENTER, 0, 0);
     }
 }

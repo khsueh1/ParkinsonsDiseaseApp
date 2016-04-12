@@ -43,7 +43,7 @@ public class RestingTremorsActivity extends AppCompatActivity implements SensorE
     private Calendar cal;
 
     //will contain the accelerometer sensor data
-    List<String> a=new ArrayList<String>();
+    List<String> a=new ArrayList<>();
 
     // Storage Permissions
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
@@ -190,7 +190,7 @@ public class RestingTremorsActivity extends AppCompatActivity implements SensorE
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_hh:mm:ss");
                 String output = sdf.format(cal.getTime());
 
-                F = new File(filepath, output + "_A" + ".csv");
+                F = new File(filepath, output + "_RT_A" + ".csv");
                 FileOutputStream fos = null;
                 try {
                     fos = new FileOutputStream(F);

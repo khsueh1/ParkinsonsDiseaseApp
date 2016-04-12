@@ -137,7 +137,8 @@ public class ConfigurationActivity extends AppCompatActivity implements SensorEv
             sm.registerListener(this, gyro, SensorManager.SENSOR_DELAY_FASTEST);
         }
 
-        Toast.makeText(ConfigurationActivity.this, "The test has begun.", Toast.LENGTH_SHORT).show();
+        Toast.makeText(ConfigurationActivity.this, "Configuration is in progress.", Toast.LENGTH_SHORT).show();
+        Toast.makeText(ConfigurationActivity.this, "Configuration is in progress.", Toast.LENGTH_SHORT).show();
 
         new CountDownTimer(5000, 1000) {
 
@@ -286,7 +287,7 @@ public class ConfigurationActivity extends AppCompatActivity implements SensorEv
         Button start;
 
         sm.unregisterListener(this);
-        Toast.makeText(ConfigurationActivity.this, "The test has stopped.", Toast.LENGTH_SHORT).show();
+        Toast.makeText(ConfigurationActivity.this, "Configuration has finished.", Toast.LENGTH_SHORT).show();
         start = (Button) findViewById(R.id.startButton);
         start.setText("Start");
 

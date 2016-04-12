@@ -1,5 +1,7 @@
 package com.example.alex.parkinsonsdiseaseapp;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
@@ -8,8 +10,14 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
+import android.widget.Toast;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -66,6 +74,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return super.onOptionsItemSelected(item);
     }
 
+    private void showSimplePopUp() {
+
+        AlertDialog.Builder helpBuilder = new AlertDialog.Builder(this);
+        helpBuilder.setTitle("New Configuration Needed");
+        helpBuilder.setMessage("Configuration for your device will need to be performed daily prior to starting a test.");
+        helpBuilder.setPositiveButton("Continue",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        startActivity(new Intent(MainActivity.this, ConfigurationActivity.class));
+                    }
+                });
+
+        // Remember, create doesn't show the dialog
+        AlertDialog helpDialog = helpBuilder.create();
+        helpDialog.setCancelable(false);
+        helpDialog.setCanceledOnTouchOutside(false);
+        helpDialog.show();
+    }
+
+
+
     boolean checkConfig() {
         String rootpath, folderpath, filepath;
         File F;
@@ -75,8 +104,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         rootpath = Environment.getExternalStorageDirectory().getPath();
 
         F = new File(rootpath, "Parkinsons");
-
-
 
         //base folder
         if(!F.exists()) {
@@ -118,27 +145,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return false;
     }
 
+
+
     @Override
     public void onClick(View view) {
 
         switch (view.getId()) {
             case R.id.restingtremors:
                 if(checkConfig()) {
-                    startActivity(new Intent(MainActivity.this, ConfigurationActivity.class));
+                    showSimplePopUp();
                 }else{
                     startActivity(new Intent(MainActivity.this, RestingTremorsActivity.class));
                 }
                 break;
             case R.id.supAndPro:
                 if(checkConfig()){
-                    startActivity(new Intent(MainActivity.this, ConfigurationActivity.class));
+                    showSimplePopUp();
                 }else {
                     startActivity(new Intent(MainActivity.this, SupinationPronationActivity.class));
                 }
                 break;
             case R.id.fingerTapping:
                 if(checkConfig()) {
-                    startActivity(new Intent(MainActivity.this, ConfigurationActivity.class));
+                    showSimplePopUp();
                 }else{
                     startActivity(new Intent(MainActivity.this, FingerTappingActivity.class));
                 }

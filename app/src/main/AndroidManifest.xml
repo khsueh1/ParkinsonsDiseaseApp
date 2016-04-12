@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.alex.parkinsonsdiseaseapp">
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -26,11 +27,11 @@
             android:theme="@style/AppTheme.NoActionBar"/>
         <activity
             android:name=".SupinationPronationActivity"
-            android:label="@string/title_activity_test"
+            android:label="@string/title_activity_supination_pronation"
             android:theme="@style/AppTheme.NoActionBar"/>
         <activity
             android:name=".RestingTremorsActivity"
-            android:label="@string/title_activity_gryoscope_test"
+            android:label="@string/title_activity_resting_tremors"
             android:theme="@style/AppTheme.NoActionBar"/>
         <activity
             android:name=".FingerTappingActivity"

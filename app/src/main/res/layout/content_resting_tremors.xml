@@ -36,12 +36,5 @@
             android:id="@+id/startButton"
             android:text="Start"
             android:layout_width="wrap_content" />
-
-        <Button
-            android:layout_height="wrap_content"
-            android:id="@+id/emailButton"
-            android:text="Email"
-            android:layout_width="wrap_content" />
-
     </LinearLayout>
 </RelativeLayout>

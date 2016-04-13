@@ -154,8 +154,8 @@ public class ConfigurationActivity extends AppCompatActivity implements SensorEv
             }
         }.start();
 
-        start = (Button)findViewById(R.id.startButton);
-        start.setVisibility(View.INVISIBLE);
+       start = (Button)findViewById(R.id.startButton);
+       start.setVisibility(View.INVISIBLE);
     }
 
     void deleteRecursive(File fileOrDirectory) {
@@ -270,9 +270,15 @@ public class ConfigurationActivity extends AppCompatActivity implements SensorEv
                 new DialogInterface.OnClickListener() {
 
                     public void onClick(DialogInterface dialog, int which) {
-                        // Do nothing but close the dialog
+                        Button start;
+
                         a.clear();
                         g.clear();
+
+                        start = (Button)findViewById(R.id.startButton);
+                        start.setVisibility(View.VISIBLE);
+
+                        Toast.makeText(ConfigurationActivity.this, "File not saved.", Toast.LENGTH_SHORT).show();
                     }
                 });
 

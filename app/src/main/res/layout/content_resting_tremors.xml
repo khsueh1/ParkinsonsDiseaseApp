@@ -20,7 +20,7 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:gravity="center"
-        android:text="Resting Tremors"
+        android:text="Please hold the device in the palm of your hand and try to keep still through out the duration of the test."
         android:textSize="30dp" />
 
     <LinearLayout

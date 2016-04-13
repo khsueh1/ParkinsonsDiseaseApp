@@ -280,8 +280,7 @@ public class RestingTremorsActivity extends AppCompatActivity implements SensorE
         rootpath = Environment.getExternalStorageDirectory().getPath();
 
         uris.add(Uri.parse("file://" + rootpath + "/Parkinsons/RestingTremors/" + Afile));
-        uris.add(Uri.parse("file://" + rootpath + "/Parkinsons/Configuration/Configuration_A.csv"));
-        uris.add(Uri.parse("file://" + rootpath + "/Parkinsons/Configuration/Configuration_G.csv"));
+        uris.add(Uri.parse("file://" + rootpath + "/Parkinsons/Configuration/Configuration_A.csv"));;
 
         emailIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
 

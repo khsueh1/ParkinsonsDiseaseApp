@@ -16,7 +16,6 @@ import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -40,6 +39,9 @@ public class SupinationPronationActivity extends AppCompatActivity implements Se
     private Sensor gyro;
     private BufferedWriter out = null;
     private Calendar cal;
+    private String Afile;
+    private String Gfile;
+    private String date;
 
     //will contain the accelerometer sensor data
     List<String> a = new ArrayList<>();
@@ -90,14 +92,6 @@ public class SupinationPronationActivity extends AppCompatActivity implements Se
         sm = (SensorManager)getSystemService(SENSOR_SERVICE);
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-        Button email = (Button) findViewById(R.id.emailButton);
-
-        email.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View view) {
-                sendEmail();
-            }
-        });
 
         final Button start = (Button) findViewById(R.id.startButton);
         start.setOnClickListener(new View.OnClickListener() {
@@ -155,6 +149,37 @@ public class SupinationPronationActivity extends AppCompatActivity implements Se
         start.setText("Stop");
     }
 
+    private void showEmailOption(){
+        AlertDialog.Builder helpBuilder = new AlertDialog.Builder(this);
+        helpBuilder.setTitle("Email");
+        helpBuilder.setMessage("Would you like to email the test data?");
+        helpBuilder.setPositiveButton("Yes",
+                new DialogInterface.OnClickListener() {
+
+                    public void onClick(DialogInterface dialog, int which) {
+                        //save the data
+                        sendEmail();
+                    }
+                });
+
+        helpBuilder.setNegativeButton("No",
+                new DialogInterface.OnClickListener() {
+
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Do nothing but close the dialog
+                        a.clear();
+                        g.clear();
+                    }
+                });
+
+        // Remember, create doesn't show the dialog
+        AlertDialog helpDialog = helpBuilder.create();
+        helpDialog.setCancelable(false);
+        helpDialog.setCanceledOnTouchOutside(false);
+        helpDialog.show();
+
+    }
+
     private void showSimplePopUp() {
 
         AlertDialog.Builder helpBuilder = new AlertDialog.Builder(this);
@@ -190,6 +215,7 @@ public class SupinationPronationActivity extends AppCompatActivity implements Se
                         cal = Calendar.getInstance(TimeZone.getDefault());
                         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_hh:mm:ss");
                         String output = sdf.format(cal.getTime());
+                        date = output;
 
                         F = new File(filepath, output);
                         if (!F.exists()) {
@@ -198,7 +224,9 @@ public class SupinationPronationActivity extends AppCompatActivity implements Se
 
                         filepath += "/" + output;
 
-                        F = new File(filepath, output + "_SP_A" + ".csv");
+                        F = new File(filepath, output + "_SP_A.csv");
+                        Afile = output + "_SP_A.csv";
+
                         FileOutputStream fos = null;
                         try {
                             fos = new FileOutputStream(F);
@@ -227,7 +255,9 @@ public class SupinationPronationActivity extends AppCompatActivity implements Se
                         a.clear();
 
                         //file name is the current date and time
-                        F = new File(filepath, output + "_SP_G" + ".csv");
+                        F = new File(filepath, output + "_SP_G.csv");
+                        Gfile = output + "_SP_G.csv";
+
                         fos = null;
                         try {
                             fos = new FileOutputStream(F);
@@ -257,8 +287,7 @@ public class SupinationPronationActivity extends AppCompatActivity implements Se
 
                         Toast.makeText(SupinationPronationActivity.this, "File saved.", Toast.LENGTH_SHORT).show();
 
-                        //go back to the main screen
-                        startActivity(new Intent(SupinationPronationActivity.this, MainActivity.class));
+                        showEmailOption();
                     }
                 });
 
@@ -294,24 +323,33 @@ public class SupinationPronationActivity extends AppCompatActivity implements Se
     }
 
     protected void sendEmail() {
-        Log.i("Send email", "");
         String[] TO = {""};
         String[] CC = {""};
-        Intent emailIntent = new Intent(Intent.ACTION_SEND);
+        String rootpath;
+        ArrayList <Uri> uris = new ArrayList<>();
+        Intent emailIntent = new Intent(Intent.ACTION_SEND_MULTIPLE);
 
         emailIntent.setData(Uri.parse("mailto:"));
         emailIntent.setType("text/plain");
         emailIntent.putExtra(Intent.EXTRA_EMAIL, TO);
         emailIntent.putExtra(Intent.EXTRA_CC, CC);
-        emailIntent.putExtra(Intent.EXTRA_SUBJECT, "test");
+        emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Supination Pronation Test Data");
+
+        rootpath = Environment.getExternalStorageDirectory().getPath();
+
+        uris.add(Uri.parse("file://" + rootpath + "/Parkinsons/SupinationPronation/" + date + "/" + Afile));
+        uris.add(Uri.parse("file://" + rootpath + "/Parkinsons/SupinationPronation/" + date + "/" + Gfile));
+        uris.add(Uri.parse("file://" + rootpath + "/Parkinsons/Configuration/Configuration_A.csv"));
+        uris.add(Uri.parse("file://" + rootpath + "/Parkinsons/Configuration/Configuration_G.csv"));
+
+        emailIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+
         //emailIntent.putExtra(Intent.EXTRA_TEXT, "Email message goes here");
 
         try {
             startActivity(Intent.createChooser(emailIntent, "Send mail..."));
             finish();
-            Log.i("Finished sending email.", "");
-        }
-        catch (android.content.ActivityNotFoundException ex) {
+        } catch (android.content.ActivityNotFoundException ex) {
             Toast.makeText(SupinationPronationActivity.this, "There is no email client installed.", Toast.LENGTH_SHORT).show();
         }
     }

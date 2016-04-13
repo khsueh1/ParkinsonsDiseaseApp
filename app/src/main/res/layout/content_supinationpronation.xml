@@ -20,7 +20,7 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:gravity="center"
-        android:text="Supination Pronation"
+        android:text="Please hold the device in the palm of your hand. Keeping your hand level, try to rotate your wrist 180 degrees back and forth repeatedly during the duration of the test."
         android:textSize="30dp" />
 
     <LinearLayout
@@ -35,12 +35,6 @@
             android:layout_height="wrap_content"
             android:id="@+id/startButton"
             android:text="Start"
-            android:layout_width="wrap_content" />
-
-        <Button
-            android:layout_height="wrap_content"
-            android:id="@+id/emailButton"
-            android:text="Email"
             android:layout_width="wrap_content" />
 
     </LinearLayout>

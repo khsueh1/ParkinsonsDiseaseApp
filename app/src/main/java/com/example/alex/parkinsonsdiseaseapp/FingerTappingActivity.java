@@ -34,6 +34,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class FingerTappingActivity extends AppCompatActivity {
     private BufferedWriter out = null;
@@ -41,6 +43,8 @@ public class FingerTappingActivity extends AppCompatActivity {
     private String Afile;
     private long DURATION = 120000;
     int recording = 0;
+    final static long INTERVAL = 1000;
+    long elapsed;
 
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
     private static String[] PERMISSIONS_STORAGE = {
@@ -49,10 +53,9 @@ public class FingerTappingActivity extends AppCompatActivity {
     };
 
     @Override
-    public void onBackPressed()
-    {
-        if(recording == 1) {
-        }else{
+    public void onBackPressed() {
+        if (recording == 1) {
+        } else {
             finish();
         }
     }
@@ -69,46 +72,85 @@ public class FingerTappingActivity extends AppCompatActivity {
             public void onClick(View view) {
                 try {
                     TextView tv = (TextView) findViewById(R.id.parkinsonsTextView);
-                    TextView timer = (TextView) findViewById(R.id.timer);
-                    timer.setVisibility(View.VISIBLE);
                     tv.setVisibility(View.INVISIBLE);
 
-                    View c = (View) findViewById(R.id.cir);
-                    c.setVisibility(View.VISIBLE);
+                    TextView timer = (TextView) findViewById(R.id.timer);
+                    timer.setVisibility(View.VISIBLE);
+
+                    elapsed = DURATION;
+
+                    TimerTask task = new TimerTask() {
+                        @Override
+                        public void run() {
+                            elapsed -= INTERVAL;
+                            if (elapsed == 0) {
+                                this.cancel();
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Button start = (Button) findViewById(R.id.ft_startButton);
+                                        start.setVisibility(View.VISIBLE);
+
+                                        TextView timer = (TextView) findViewById(R.id.timer);
+                                        timer.setVisibility(View.INVISIBLE);
+
+                                        View c = (View) findViewById(R.id.cir);
+                                        c.setVisibility(View.INVISIBLE);
+
+                                        TextView tv = (TextView) findViewById(R.id.parkinsonsTextView);
+                                        tv.setVisibility(View.VISIBLE);
+
+                                        try {
+                                            stopRecording();
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                });
+                            }
+
+                            if (Circle.numCorrect >= Circle.TARGET) {
+                                this.cancel();
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Button start = (Button) findViewById(R.id.ft_startButton);
+                                        start.setVisibility(View.VISIBLE);
+
+                                        TextView timer = (TextView) findViewById(R.id.timer);
+                                        timer.setVisibility(View.INVISIBLE);
+
+                                        View c = (View) findViewById(R.id.cir);
+                                        c.setVisibility(View.INVISIBLE);
+
+                                        TextView tv = (TextView) findViewById(R.id.parkinsonsTextView);
+                                        tv.setVisibility(View.VISIBLE);
+
+                                        try {
+                                            stopRecording();
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                });
+                            }
+
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    TextView timer = (TextView) findViewById(R.id.timer);
+                                    timer.setText(new SimpleDateFormat("mm:ss").format(new Date(elapsed)));
+                                }
+                            });
+                        }
+                    };
+                    Timer t = new Timer();
+                    t.scheduleAtFixedRate(task, 0, INTERVAL);
 
                     startRecording();
 
-                    new CountDownTimer(DURATION, 1000) {
-                        public void onTick(long millisUntilFinished) {
-                            System.out.println("in ontick");
-                            if(Circle.numCorrect >= Circle.TARGET) {
-                              onFinish();
-                            }
-                            TextView timer = (TextView) findViewById(R.id.timer);
-                            timer.setText(new SimpleDateFormat("mm:ss").format(new Date( millisUntilFinished)));
-                        }
-
-                        public void onFinish() {
-                            TextView timer = (TextView) findViewById(R.id.timer);
-                            timer.setVisibility(View.INVISIBLE);
-                            if(Circle.recordflag == 1) {
-                                try {
-                                    Circle.numCorrect = 0;
-                                    stopRecording();
-
-                                    View c = (View) findViewById(R.id.cir);
-                                    c.setVisibility(View.INVISIBLE);
-
-                                    TextView tv = (TextView) findViewById(R.id.parkinsonsTextView);
-                                    tv.setVisibility(View.VISIBLE);
-
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
-                                cancel();
-                            }
-                        }
-                    }.start();
+                    View c = (View) findViewById(R.id.cir);
+                    c.setVisibility(View.VISIBLE);
 
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -159,7 +201,6 @@ public class FingerTappingActivity extends AppCompatActivity {
         helpDialog.setCancelable(false);
         helpDialog.setCanceledOnTouchOutside(false);
         helpDialog.show();
-
     }
 
     private void showSimplePopUp() {
@@ -257,6 +298,8 @@ public class FingerTappingActivity extends AppCompatActivity {
 
         Circle.distances.clear();
 
+        Circle.numCorrect = 0;
+
         start = (Button) findViewById(R.id.ft_startButton);
         start.setVisibility(View.INVISIBLE);
 
@@ -267,10 +310,7 @@ public class FingerTappingActivity extends AppCompatActivity {
     }
 
     public void stopRecording() throws IOException {
-        Button start;
-
-        start = (Button) findViewById(R.id.ft_startButton);
-        start.setVisibility(View.VISIBLE);
+        Circle.numCorrect = 0;
 
         Toast.makeText(FingerTappingActivity.this, "The test has stopped.", Toast.LENGTH_SHORT).show();
 

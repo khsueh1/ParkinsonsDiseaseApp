@@ -39,6 +39,7 @@ public class ConfigurationActivity extends AppCompatActivity implements SensorEv
     private Sensor gyro;
     private BufferedWriter out = null;
     private Calendar cal;
+    int recording = 0;
 
     //will contain the accelerometer sensor data
     List<String> a=new ArrayList<>();
@@ -63,6 +64,16 @@ public class ConfigurationActivity extends AppCompatActivity implements SensorEv
                     REQUEST_EXTERNAL_STORAGE
             );
         }
+    }
+
+    @Override
+    public void onBackPressed()
+    {
+        if(recording == 1) {
+        }else{
+            finish();
+        }
+
     }
 
     protected void onResume(){
@@ -122,7 +133,7 @@ public class ConfigurationActivity extends AppCompatActivity implements SensorEv
 
     protected void startRecording() throws IOException {
         Button start;
-
+        recording = 1;
         a.clear();
         g.clear();
 
@@ -277,6 +288,7 @@ public class ConfigurationActivity extends AppCompatActivity implements SensorEv
 
                         start = (Button)findViewById(R.id.startButton);
                         start.setVisibility(View.VISIBLE);
+                        recording = 0;
 
                         Toast.makeText(ConfigurationActivity.this, "File not saved.", Toast.LENGTH_SHORT).show();
                     }

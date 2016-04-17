@@ -40,12 +40,22 @@ public class FingerTappingActivity extends AppCompatActivity {
     private Calendar cal;
     private String Afile;
     private long DURATION = 120000;
+    int recording = 0;
 
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
     private static String[] PERMISSIONS_STORAGE = {
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
+
+    @Override
+    public void onBackPressed()
+    {
+        if(recording == 1) {
+        }else{
+            finish();
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +80,7 @@ public class FingerTappingActivity extends AppCompatActivity {
 
                     new CountDownTimer(DURATION, 1000) {
                         public void onTick(long millisUntilFinished) {
+                            System.out.println("in ontick");
                             if(Circle.numCorrect >= Circle.TARGET) {
                               onFinish();
                             }
@@ -139,6 +150,7 @@ public class FingerTappingActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int which) {
                         // Do nothing but close the dialog
                         Circle.distances.clear();
+                        recording = 0;
                     }
                 });
 
@@ -229,6 +241,7 @@ public class FingerTappingActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int which) {
                         // Do nothing but close the dialog
                         Circle.distances.clear();
+                        recording = 0;
                     }
                 });
 
@@ -250,6 +263,7 @@ public class FingerTappingActivity extends AppCompatActivity {
         Toast.makeText(FingerTappingActivity.this, "The test has begun.", Toast.LENGTH_SHORT).show();
 
         Circle.recordflag = 1;
+        recording = 1;
     }
 
     public void stopRecording() throws IOException {

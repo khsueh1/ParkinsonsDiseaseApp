@@ -42,6 +42,7 @@ public class SupinationPronationActivity extends AppCompatActivity implements Se
     private String Afile;
     private String Gfile;
     private String date;
+    int recording = 0;
 
     //will contain the accelerometer sensor data
     List<String> a = new ArrayList<>();
@@ -65,6 +66,15 @@ public class SupinationPronationActivity extends AppCompatActivity implements Se
                     PERMISSIONS_STORAGE,
                     REQUEST_EXTERNAL_STORAGE
             );
+        }
+    }
+
+    @Override
+    public void onBackPressed()
+    {
+        if(recording == 1) {
+        }else{
+            finish();
         }
     }
 
@@ -146,6 +156,7 @@ public class SupinationPronationActivity extends AppCompatActivity implements Se
 
         Toast.makeText(SupinationPronationActivity.this, "The test has begun.", Toast.LENGTH_SHORT).show();
         start = (Button)findViewById(R.id.startButton);
+        recording = 1;
         start.setText("Stop");
     }
 
@@ -169,6 +180,7 @@ public class SupinationPronationActivity extends AppCompatActivity implements Se
                         // Do nothing but close the dialog
                         a.clear();
                         g.clear();
+                        recording = 0;
                     }
                 });
 
@@ -298,6 +310,7 @@ public class SupinationPronationActivity extends AppCompatActivity implements Se
                         // Do nothing but close the dialog
                         a.clear();
                         g.clear();
+                        recording = 0;
                     }
                 });
 

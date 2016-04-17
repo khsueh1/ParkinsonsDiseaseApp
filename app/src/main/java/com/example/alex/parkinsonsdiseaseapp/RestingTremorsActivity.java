@@ -39,6 +39,7 @@ public class RestingTremorsActivity extends AppCompatActivity implements SensorE
     private BufferedWriter out = null;
     private Calendar cal;
     private String Afile;
+    int recording = 0;
 
     //will contain the accelerometer sensor data
     List<String> a = new ArrayList<>();
@@ -61,6 +62,15 @@ public class RestingTremorsActivity extends AppCompatActivity implements SensorE
                     PERMISSIONS_STORAGE,
                     REQUEST_EXTERNAL_STORAGE
             );
+        }
+    }
+
+    @Override
+    public void onBackPressed()
+    {
+        if(recording == 1) {
+        }else{
+            finish();
         }
     }
 
@@ -136,6 +146,7 @@ public class RestingTremorsActivity extends AppCompatActivity implements SensorE
                     public void onClick(DialogInterface dialog, int which) {
                         // Do nothing but close the dialog
                         a.clear();
+                        recording = 0;
                     }
                 });
 
@@ -226,6 +237,7 @@ public class RestingTremorsActivity extends AppCompatActivity implements SensorE
                     public void onClick(DialogInterface dialog, int which) {
                         // Do nothing but close the dialog
                         a.clear();
+                        recording = 0;
                     }
                 });
 
@@ -249,6 +261,7 @@ public class RestingTremorsActivity extends AppCompatActivity implements SensorE
         Toast.makeText(RestingTremorsActivity.this, "The test has begun.", Toast.LENGTH_SHORT).show();
         start = (Button) findViewById(R.id.startButton);
         start.setText("Stop");
+        recording = 1;
     }
 
     protected void stopRecording() throws IOException {

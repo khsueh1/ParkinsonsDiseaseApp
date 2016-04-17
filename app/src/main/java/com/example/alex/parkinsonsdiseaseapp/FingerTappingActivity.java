@@ -66,7 +66,6 @@ public class FingerTappingActivity extends AppCompatActivity {
                     startRecording();
 
                     new CountDownTimer(DURATION, 1000) {
-
                         public void onTick(long millisUntilFinished) {
                             if(Circle.numCorrect == Circle.TARGET) {
                               onFinish();
@@ -76,6 +75,7 @@ public class FingerTappingActivity extends AppCompatActivity {
                         public void onFinish() {
                             if(Circle.recordflag == 1) {
                                 try {
+                                    Circle.numCorrect = 0;
                                     stopRecording();
 
                                     View c = (View) findViewById(R.id.cir);

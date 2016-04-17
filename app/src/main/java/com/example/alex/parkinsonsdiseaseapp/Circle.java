@@ -27,7 +27,7 @@ public class Circle extends View {
     public static ArrayList<String> distances = new ArrayList<>();
     public static int numCorrect = 0;
     public static int recordflag = 0;
-    public static int TARGET= 15;
+    public static int TARGET = 15;
 
     // draws circle
     @Override
@@ -77,9 +77,9 @@ public class Circle extends View {
             distance(event.getX(), event.getY());
 
             if (isInsideCircle(event.getX(), event.getY())) {
+                numCorrect++;
                 generateRandom();
                 invalidate();
-                numCorrect++;
             }
         }
         return super.onTouchEvent(event);
@@ -94,6 +94,9 @@ public class Circle extends View {
         output += "," + Math.sqrt(Math.pow(x - newX, 2) + Math.pow(y - newY, 2)) + "\n";
 
         distances.add(output);
+        System.out.println("distance: " + Math.sqrt(Math.pow(x - newX, 2) + Math.pow(y - newY, 2)));
+        System.out.println("number correct: " + numCorrect);
+        System.out.println("distance size: " + distances.size());
     }
 
     public boolean isInsideCircle(float xPoint, float yPoint) {

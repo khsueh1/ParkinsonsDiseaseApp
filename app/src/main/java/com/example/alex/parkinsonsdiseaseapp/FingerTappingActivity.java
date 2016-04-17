@@ -31,6 +31,7 @@ import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 
@@ -58,6 +59,7 @@ public class FingerTappingActivity extends AppCompatActivity {
             public void onClick(View view) {
                 try {
                     TextView tv = (TextView) findViewById(R.id.parkinsonsTextView);
+
                     tv.setVisibility(View.INVISIBLE);
 
                     View c = (View) findViewById(R.id.cir);
@@ -70,6 +72,8 @@ public class FingerTappingActivity extends AppCompatActivity {
                             if(Circle.numCorrect >= Circle.TARGET) {
                               onFinish();
                             }
+                            TextView timer = (TextView) findViewById(R.id.timer);
+                            timer.setText(new SimpleDateFormat("mm:ss").format(new Date( millisUntilFinished)));
                         }
 
                         public void onFinish() {

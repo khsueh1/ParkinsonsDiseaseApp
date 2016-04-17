@@ -59,7 +59,8 @@ public class FingerTappingActivity extends AppCompatActivity {
             public void onClick(View view) {
                 try {
                     TextView tv = (TextView) findViewById(R.id.parkinsonsTextView);
-
+                    TextView timer = (TextView) findViewById(R.id.timer);
+                    timer.setVisibility(View.VISIBLE);
                     tv.setVisibility(View.INVISIBLE);
 
                     View c = (View) findViewById(R.id.cir);
@@ -77,6 +78,8 @@ public class FingerTappingActivity extends AppCompatActivity {
                         }
 
                         public void onFinish() {
+                            TextView timer = (TextView) findViewById(R.id.timer);
+                            timer.setVisibility(View.INVISIBLE);
                             if(Circle.recordflag == 1) {
                                 try {
                                     Circle.numCorrect = 0;

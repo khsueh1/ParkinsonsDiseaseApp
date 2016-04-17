@@ -23,9 +23,9 @@ public class Circle extends View {
     public static ArrayList<Double> distances;
     int flag = 1;
     static int startFlag = 0;
-    Data cData;
+    //Data cData;
 
-    public class Data {
+   /* public class Data {
         int count;
         ArrayList <Double> singleDist;
 
@@ -33,7 +33,7 @@ public class Circle extends View {
             this.count = 0;
             this.singleDist = new ArrayList<Double>();
         }
-    }
+    }*/
 
     // draws circle
     @Override

@@ -25,7 +25,10 @@
 
     <com.example.alex.parkinsonsdiseaseapp.Circle
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent"
+        android:visibility="invisible"/>
+
+
 
 
 

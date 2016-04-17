@@ -52,6 +52,11 @@ public class FingerTappingActivity extends Activity {
                 Intent intent = getIntent();
                 finish();
                 startActivity(intent);
+                try {
+                    startRecording();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         });
     }
@@ -145,7 +150,7 @@ public class FingerTappingActivity extends Activity {
 
                         F = new File(filepath, output + "_FT.csv");
 
-                        Afile = output + "_RT_A.csv";
+                        Afile = output + "_FT.csv";
 
                         FileOutputStream fos = null;
                         try {
@@ -200,6 +205,7 @@ public class FingerTappingActivity extends Activity {
         Button start;
 
         a.clear();
+        Circle.distances.clear();
         Toast.makeText(FingerTappingActivity.this, "The test has begun.", Toast.LENGTH_SHORT).show();
 
         start = (Button) findViewById(R.id.ft_startButton);
@@ -216,6 +222,17 @@ public class FingerTappingActivity extends Activity {
         start.setVisibility(View.VISIBLE);
 
         verifyStoragePermissions(this);
+
+        cal = Calendar.getInstance(TimeZone.getDefault());
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
+        String output;
+
+        for (int i = 0; i < Circle.distances.size(); i++) {
+            output = sdf.format(cal.getTime());
+            output += "," + Circle.distances.get(i) + "\n";
+            a.add(output);
+            output = "";
+        }
 
         showSimplePopUp();
     }

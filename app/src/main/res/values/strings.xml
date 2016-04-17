@@ -5,4 +5,5 @@
     <string name="title_activity_supination_pronation">Supination Pronation</string>
     <string name="title_activity_resting_tremors">Resting Tremors</string>
     <string name="title_activity_finger_tapping">Finger Tapping</string>
+    <string name="Start">Start</string>
 </resources>

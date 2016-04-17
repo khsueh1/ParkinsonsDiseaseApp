@@ -8,19 +8,18 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.AttributeSet;
-import android.view.MotionEvent;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.style.RelativeSizeSpan;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.LinearLayout.LayoutParams;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -32,7 +31,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
 import java.util.TimeZone;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -43,7 +41,7 @@ public class FingerTappingActivity extends AppCompatActivity {
     private String Afile;
     private long DURATION = 120000;
     int recording = 0;
-    final static long INTERVAL = 1000;
+    final static long INTERVAL = 500;
     long elapsed;
 
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
@@ -54,8 +52,7 @@ public class FingerTappingActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        if (recording == 1) {
-        } else {
+        if (recording == 0) {
             finish();
         }
     }
@@ -67,6 +64,11 @@ public class FingerTappingActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+        TextView tv =(TextView) findViewById(R.id.parkinsonsTextView);
+        tv.setText("Please tap the circles as they appear on the screen. The test will stop when " + Circle.TARGET + " circles have been tapped or when " + DURATION/60000 + " minutes have passed.");
+
         final Button start = (Button) findViewById(R.id.ft_startButton);
         start.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
@@ -77,55 +79,20 @@ public class FingerTappingActivity extends AppCompatActivity {
                     TextView timer = (TextView) findViewById(R.id.timer);
                     timer.setVisibility(View.VISIBLE);
 
+                    TextView count = (TextView) findViewById(R.id.counter);
+                    count.setVisibility(View.VISIBLE);
+
                     elapsed = DURATION;
 
                     TimerTask task = new TimerTask() {
                         @Override
                         public void run() {
                             elapsed -= INTERVAL;
-                            if (elapsed == 0) {
+                            if (elapsed <= 0 || (Circle.numCorrect >= Circle.TARGET )) {
                                 this.cancel();
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        Button start = (Button) findViewById(R.id.ft_startButton);
-                                        start.setVisibility(View.VISIBLE);
-
-                                        TextView timer = (TextView) findViewById(R.id.timer);
-                                        timer.setVisibility(View.INVISIBLE);
-
-                                        View c = (View) findViewById(R.id.cir);
-                                        c.setVisibility(View.INVISIBLE);
-
-                                        TextView tv = (TextView) findViewById(R.id.parkinsonsTextView);
-                                        tv.setVisibility(View.VISIBLE);
-
-                                        try {
-                                            stopRecording();
-                                        } catch (IOException e) {
-                                            e.printStackTrace();
-                                        }
-                                    }
-                                });
-                            }
-
-                            if (Circle.numCorrect >= Circle.TARGET) {
-                                this.cancel();
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        Button start = (Button) findViewById(R.id.ft_startButton);
-                                        start.setVisibility(View.VISIBLE);
-
-                                        TextView timer = (TextView) findViewById(R.id.timer);
-                                        timer.setVisibility(View.INVISIBLE);
-
-                                        View c = (View) findViewById(R.id.cir);
-                                        c.setVisibility(View.INVISIBLE);
-
-                                        TextView tv = (TextView) findViewById(R.id.parkinsonsTextView);
-                                        tv.setVisibility(View.VISIBLE);
-
                                         try {
                                             stopRecording();
                                         } catch (IOException e) {
@@ -139,7 +106,21 @@ public class FingerTappingActivity extends AppCompatActivity {
                                 @Override
                                 public void run() {
                                     TextView timer = (TextView) findViewById(R.id.timer);
-                                    timer.setText(new SimpleDateFormat("mm:ss").format(new Date(elapsed)));
+                                    final SpannableString text = new SpannableString("Stopwatch\n" + new SimpleDateFormat("mm:ss").format(new Date(elapsed)));
+                                    text.setSpan(new RelativeSizeSpan(.5f), 0, 9,
+                                            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                                    text.setSpan(new RelativeSizeSpan(1f), 9, 15,
+                                            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                                    timer.setText(text);
+
+                                    TextView count = (TextView) findViewById(R.id.counter);
+                                    final SpannableString text2 = new SpannableString("Circles to tap\n" + (Circle.TARGET -Circle.numCorrect));
+                                    text2.setSpan(new RelativeSizeSpan(.5f), 0, 14,
+                                            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                                    text2.setSpan(new RelativeSizeSpan(1f), 14, 16,
+                                            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                                    count.setText(text2);
+
                                 }
                             });
                         }
@@ -149,7 +130,7 @@ public class FingerTappingActivity extends AppCompatActivity {
 
                     startRecording();
 
-                    View c = (View) findViewById(R.id.cir);
+                    View c = findViewById(R.id.cir);
                     c.setVisibility(View.VISIBLE);
 
                 } catch (IOException e) {
@@ -310,6 +291,22 @@ public class FingerTappingActivity extends AppCompatActivity {
     }
 
     public void stopRecording() throws IOException {
+        Button start = (Button) findViewById(R.id.ft_startButton);
+        start.setVisibility(View.VISIBLE);
+
+        TextView timer = (TextView) findViewById(R.id.timer);
+        timer.setVisibility(View.INVISIBLE);
+
+        TextView count = (TextView) findViewById(R.id.counter);
+        count.setVisibility(View.INVISIBLE);
+
+        View c = (View) findViewById(R.id.cir);
+        c.setVisibility(View.INVISIBLE);
+
+        TextView tv = (TextView) findViewById(R.id.parkinsonsTextView);
+        tv.setVisibility(View.VISIBLE);
+
+
         Circle.numCorrect = 0;
 
         Toast.makeText(FingerTappingActivity.this, "The test has stopped.", Toast.LENGTH_SHORT).show();

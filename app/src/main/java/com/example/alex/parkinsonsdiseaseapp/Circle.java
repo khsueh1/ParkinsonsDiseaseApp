@@ -20,7 +20,7 @@ public class Circle extends View {
     private int r = 150;
     private final Paint mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Random random = new Random();
-    private ArrayList<ArrayList<Double>> distances;
+    public static ArrayList<Double> distances;
     int flag = 1;
     static int startFlag = 0;
     Data cData;
@@ -86,34 +86,30 @@ public class Circle extends View {
     public boolean onTouchEvent(MotionEvent event) {
         if (flag == 1) {
             flag = 0;
-            distances = new ArrayList<ArrayList<Double>>();
-            cData = new Data();
+            distances = new ArrayList<Double>();
+           // cData = new Data();
 
         }
 
         if (isInsideCircle(event.getX(), event.getY())) {
-            distances.add(cData.singleDist);
-            cData = new Data();
+            //distances.add(cData.singleDist);
+            //cData = new Data();
 
             generateRandom();
             invalidate();
         }
 
-        else {
-            cData.count += 1;
-            distance(event.getX(), event.getY(), cData.singleDist);
-            System.out.println("Distance " + cData.count + " = " + cData.singleDist.get(cData.singleDist.size() - 1));
-        }
+        distance(event.getX(), event.getY());
 
         return super.onTouchEvent(event);
     }
 
 
-    void distance(double newX, double newY, ArrayList <Double> data) {
-        data.add(Math.sqrt(Math.pow(x - newX, 2) + Math.pow(y - newY, 2)));
+    void distance(double newX, double newY) {
+        distances.add(Math.sqrt(Math.pow(x - newX, 2) + Math.pow(y - newY, 2)));
     }
 
-    boolean isInsideCircle(float xPoint, float yPoint) {
+    public boolean isInsideCircle(float xPoint, float yPoint) {
         float dx = (x - xPoint);
         float dxPow = (float) Math.pow(dx, 2);
         float dy = (y - yPoint);

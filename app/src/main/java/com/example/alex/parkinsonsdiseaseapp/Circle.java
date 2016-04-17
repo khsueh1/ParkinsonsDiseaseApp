@@ -8,11 +8,15 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Random;
+import java.util.TimeZone;
 
 public class Circle extends View {
     private float x = 300;
@@ -20,9 +24,10 @@ public class Circle extends View {
     private int r = 150;
     private final Paint mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Random random = new Random();
-    public static ArrayList<Double> distances = new ArrayList<Double>();
-    int flag = 1;
-
+    public static ArrayList<String> distances = new ArrayList<>();
+    public static int numCorrect = 0;
+    public static int recordflag = 0;
+    public static int TARGET= 15;
 
     // draws circle
     @Override
@@ -53,10 +58,8 @@ public class Circle extends View {
 
     }
 
-
     // gets random number,,
     void generateRandom() {
-
         int w = getWidth() - r - 50;
         int h = getHeight() - r - 50;
 
@@ -70,31 +73,27 @@ public class Circle extends View {
     // when screen is tapped, old circle removed, new circle drawn
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (flag == 1) {
-            flag = 0;
-            //distances = new ArrayList<Double>();
-            // cData = new Data();
+        if(recordflag == 1) {
+            distance(event.getX(), event.getY());
 
+            if (isInsideCircle(event.getX(), event.getY())) {
+                generateRandom();
+                invalidate();
+                numCorrect++;
+            }
         }
-
-        if (isInsideCircle(event.getX(), event.getY())) {
-            //distances.add(cData.singleDist);
-            //cData = new Data();
-
-            generateRandom();
-            invalidate();
-        }
-
-        distance(event.getX(), event.getY());
-
         return super.onTouchEvent(event);
     }
 
-
     void distance(double newX, double newY) {
-        distances.add(Math.sqrt(Math.pow(x - newX, 2) + Math.pow(y - newY, 2)));
+        Calendar cal = Calendar.getInstance(TimeZone.getDefault());
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
+        String output;
 
-        System.out.println(Math.sqrt(Math.pow(x - newX, 2) + Math.pow(y - newY, 2)));
+        output = sdf.format(cal.getTime());
+        output += "," + Math.sqrt(Math.pow(x - newX, 2) + Math.pow(y - newY, 2)) + "\n";
+
+        distances.add(output);
     }
 
     public boolean isInsideCircle(float xPoint, float yPoint) {

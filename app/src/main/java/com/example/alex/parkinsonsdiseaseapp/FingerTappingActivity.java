@@ -6,12 +6,13 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.hardware.Sensor;
-import android.hardware.SensorManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
@@ -33,45 +34,70 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.TimeZone;
 
-public class FingerTappingActivity extends Activity {
+public class FingerTappingActivity extends AppCompatActivity {
     private BufferedWriter out = null;
     private Calendar cal;
     private String Afile;
-
-    //will contain the accelerometer sensor data
-    List<String> a = new ArrayList<>();
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_finger_tapping);
-        final Button start = (Button) findViewById(R.id.ft_startButton);
-        start.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View view) {
-                try {
-                    if (start.getText().toString().equals("Start")) {
-                        startRecording();
-                        TextView tv = (TextView) findViewById(R.id.parkinsonsTextView);
-                        tv.setVisibility(View.GONE);
-
-                        View c = (View) findViewById(R.id.cir);
-                        c.setVisibility(View.VISIBLE);
-
-                    } else {
-                        stopRecording();
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-    }
+    private long DURATION = 120000;
 
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
     private static String[] PERMISSIONS_STORAGE = {
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_finger_tapping);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        final Button start = (Button) findViewById(R.id.ft_startButton);
+        start.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View view) {
+                try {
+                    TextView tv = (TextView) findViewById(R.id.parkinsonsTextView);
+                    tv.setVisibility(View.INVISIBLE);
+
+                    View c = (View) findViewById(R.id.cir);
+                    c.setVisibility(View.VISIBLE);
+
+                    startRecording();
+
+                    new CountDownTimer(DURATION, 1000) {
+
+                        public void onTick(long millisUntilFinished) {
+                            if(Circle.numCorrect == Circle.TARGET) {
+                              onFinish();
+                            }
+                        }
+
+                        public void onFinish() {
+                            if(Circle.recordflag == 1) {
+                                try {
+                                    stopRecording();
+
+                                    View c = (View) findViewById(R.id.cir);
+                                    c.setVisibility(View.INVISIBLE);
+
+                                    TextView tv = (TextView) findViewById(R.id.parkinsonsTextView);
+                                    tv.setVisibility(View.VISIBLE);
+
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                                cancel();
+                            }
+                        }
+                    }.start();
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
 
     public static void verifyStoragePermissions(Activity activity) {
         // Check if we have write permission
@@ -87,7 +113,7 @@ public class FingerTappingActivity extends Activity {
         }
     }
 
-    private void showEmailOption(){
+    private void showEmailOption() {
         AlertDialog.Builder helpBuilder = new AlertDialog.Builder(this);
         helpBuilder.setTitle("Email");
         helpBuilder.setMessage("Would you like to email the test data?");
@@ -105,8 +131,7 @@ public class FingerTappingActivity extends Activity {
 
                     public void onClick(DialogInterface dialog, int which) {
                         // Do nothing but close the dialog
-
-                        a.clear();
+                        Circle.distances.clear();
                     }
                 });
 
@@ -119,7 +144,6 @@ public class FingerTappingActivity extends Activity {
     }
 
     private void showSimplePopUp() {
-
         AlertDialog.Builder helpBuilder = new AlertDialog.Builder(this);
         helpBuilder.setTitle("New Finger Tapping File");
         helpBuilder.setMessage("Save finger tapping file?");
@@ -166,9 +190,10 @@ public class FingerTappingActivity extends Activity {
                         }
                         out = new BufferedWriter(new OutputStreamWriter(fos));
 
-                        for (int i = 0; i < a.size(); i++) {
+
+                        for (int i = 0; i < Circle.distances.size(); i++) {
                             try {
-                                out.write(a.get(i));
+                                out.write(Circle.distances.get(i));
                             } catch (IOException e1) {
                                 e1.printStackTrace();
                             }
@@ -183,7 +208,7 @@ public class FingerTappingActivity extends Activity {
                             e.printStackTrace();
                         }
 
-                        a.clear();
+                        Circle.distances.clear();
 
                         Toast.makeText(FingerTappingActivity.this, "File saved.", Toast.LENGTH_SHORT).show();
 
@@ -196,7 +221,7 @@ public class FingerTappingActivity extends Activity {
 
                     public void onClick(DialogInterface dialog, int which) {
                         // Do nothing but close the dialog
-                        a.clear();
+                        Circle.distances.clear();
                     }
                 });
 
@@ -210,35 +235,27 @@ public class FingerTappingActivity extends Activity {
     protected void startRecording() throws IOException {
         Button start;
 
-        a.clear();
         Circle.distances.clear();
+
+        start = (Button) findViewById(R.id.ft_startButton);
+        start.setVisibility(View.INVISIBLE);
+
         Toast.makeText(FingerTappingActivity.this, "The test has begun.", Toast.LENGTH_SHORT).show();
 
-        start = (Button) findViewById(R.id.ft_startButton);
-        //start.setText("Stop");
-        start.setVisibility(View.INVISIBLE);
+        Circle.recordflag = 1;
     }
 
-    protected void stopRecording() throws IOException {
+    public void stopRecording() throws IOException {
         Button start;
 
-        Toast.makeText(FingerTappingActivity.this, "The test has stopped.", Toast.LENGTH_SHORT).show();
         start = (Button) findViewById(R.id.ft_startButton);
-        //start.setText("Start");
         start.setVisibility(View.VISIBLE);
 
+        Toast.makeText(FingerTappingActivity.this, "The test has stopped.", Toast.LENGTH_SHORT).show();
+
+        Circle.recordflag = 0;
+
         verifyStoragePermissions(this);
-
-        cal = Calendar.getInstance(TimeZone.getDefault());
-        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
-        String output;
-
-        for (int i = 0; i < Circle.distances.size(); i++) {
-            output = sdf.format(cal.getTime());
-            output += "," + Circle.distances.get(i) + "\n";
-            a.add(output);
-            output = "";
-        }
 
         showSimplePopUp();
     }

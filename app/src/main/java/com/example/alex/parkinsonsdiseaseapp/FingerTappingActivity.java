@@ -17,6 +17,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.LinearLayout.LayoutParams;
 
@@ -44,16 +45,21 @@ public class FingerTappingActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_finger_tapping);
-
-        Button start = (Button) findViewById(R.id.ft_startButton);
+        final Button start = (Button) findViewById(R.id.ft_startButton);
         start.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
-                Circle.startFlag = 1;
-                Intent intent = getIntent();
-                finish();
-                startActivity(intent);
                 try {
-                    startRecording();
+                    if (start.getText().toString().equals("Start")) {
+                        startRecording();
+                        TextView tv = (TextView) findViewById(R.id.parkinsonsTextView);
+                        tv.setVisibility(View.GONE);
+
+                        View c = (View) findViewById(R.id.cir);
+                        c.setVisibility(View.VISIBLE);
+
+                    } else {
+                        stopRecording();
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

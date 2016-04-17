@@ -20,30 +20,17 @@ public class Circle extends View {
     private int r = 150;
     private final Paint mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Random random = new Random();
-    public static ArrayList<Double> distances;
+    public static ArrayList<Double> distances = new ArrayList<Double>();
     int flag = 1;
-    static int startFlag = 0;
-    //Data cData;
 
-   /* public class Data {
-        int count;
-        ArrayList <Double> singleDist;
-
-        public Data() {
-            this.count = 0;
-            this.singleDist = new ArrayList<Double>();
-        }
-    }*/
 
     // draws circle
     @Override
     protected void onDraw(Canvas canvas) {
-        if (startFlag == 1) {
-            super.onDraw(canvas);
-            mPaint.setStyle(Paint.Style.FILL);
-            mPaint.setColor(Color.RED);
-            canvas.drawCircle(x, y, r, mPaint);
-        }
+        super.onDraw(canvas);
+        mPaint.setStyle(Paint.Style.FILL);
+        mPaint.setColor(Color.RED);
+        canvas.drawCircle(x, y, r, mPaint);
     }
 
     // constructors
@@ -75,10 +62,9 @@ public class Circle extends View {
 
         int border = r + 50;
 
-        this.x = border + random.nextInt(w-border);
-        this.y = border + random.nextInt(h-border);
+        this.x = border + random.nextInt(w - border);
+        this.y = border + random.nextInt(h - border);
     }
-
 
 
     // when screen is tapped, old circle removed, new circle drawn
@@ -86,8 +72,8 @@ public class Circle extends View {
     public boolean onTouchEvent(MotionEvent event) {
         if (flag == 1) {
             flag = 0;
-            distances = new ArrayList<Double>();
-           // cData = new Data();
+            //distances = new ArrayList<Double>();
+            // cData = new Data();
 
         }
 
@@ -107,6 +93,8 @@ public class Circle extends View {
 
     void distance(double newX, double newY) {
         distances.add(Math.sqrt(Math.pow(x - newX, 2) + Math.pow(y - newY, 2)));
+
+        System.out.println(Math.sqrt(Math.pow(x - newX, 2) + Math.pow(y - newY, 2)));
     }
 
     public boolean isInsideCircle(float xPoint, float yPoint) {

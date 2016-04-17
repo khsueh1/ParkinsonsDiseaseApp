@@ -7,11 +7,7 @@ import android.view.View;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.widget.Button;
-import android.widget.TextView;
-import android.widget.Toast;
 
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -19,8 +15,10 @@ import java.util.Random;
 import java.util.TimeZone;
 
 public class Circle extends View {
-    private float x = 300;
-    private float y = 300;
+    private float x;
+    private float y;
+    private float lastx = 150;
+    private float lasty = 150;
     private int r = 150;
     private final Paint mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Random random = new Random();
@@ -32,9 +30,17 @@ public class Circle extends View {
     // draws circle
     @Override
     protected void onDraw(Canvas canvas) {
+        while( (Math.abs(x - (lastx ))  <= (2*r)) && (Math.abs(y - (lasty ))  <= (2*r))){
+            generateRandom();
+        }
+
+        lastx = x;
+        lasty = y;
         super.onDraw(canvas);
         mPaint.setStyle(Paint.Style.FILL);
         mPaint.setColor(Color.RED);
+        System.out.println("x: " + x);
+        System.out.println("y: " + y);
         canvas.drawCircle(x, y, r, mPaint);
     }
 
@@ -55,20 +61,13 @@ public class Circle extends View {
     }
 
     void init() {
-
     }
 
     // gets random number,,
     void generateRandom() {
-        int w = getWidth() - r - 50;
-        int h = getHeight() - r - 50;
-
-        int border = r + 50;
-
-        this.x = border + random.nextInt(w - border);
-        this.y = border + random.nextInt(h - border);
+          this.x =  random.nextInt(getWidth() - (2*r)) + r;
+          this.y = random.nextInt(getHeight() - (2*r)) + r;
     }
-
 
     // when screen is tapped, old circle removed, new circle drawn
     @Override
@@ -77,8 +76,8 @@ public class Circle extends View {
             distance(event.getX(), event.getY());
 
             if (isInsideCircle(event.getX(), event.getY())) {
+
                 numCorrect++;
-                generateRandom();
                 invalidate();
             }
         }

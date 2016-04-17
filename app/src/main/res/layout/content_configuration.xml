@@ -20,7 +20,7 @@
         android:layout_height="fill_parent"
         android:gravity="center"
         android:text="Please place your device on a stationary flat surface before starting the configuration. After starting, do not touch the device and let it run to completion. Configuration will take a few seconds."
-        android:textSize="30dp" />
+        android:textSize="30sp" />
 
     <LinearLayout
         android:layout_alignParentBottom="true"
@@ -33,7 +33,7 @@
         <Button
             android:layout_height="wrap_content"
             android:id="@+id/startButton"
-            android:text="Start"
+            android:text="@string/Start"
             android:layout_width="wrap_content" />
     </LinearLayout>
 </RelativeLayout>

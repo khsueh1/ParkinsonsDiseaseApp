@@ -38,7 +38,6 @@ public class ConfigurationActivity extends AppCompatActivity implements SensorEv
     private Sensor mAcc;
     private Sensor gyro;
     private BufferedWriter out = null;
-    private Calendar cal;
     int recording = 0;
 
     //will contain the accelerometer sensor data
@@ -69,11 +68,9 @@ public class ConfigurationActivity extends AppCompatActivity implements SensorEv
     @Override
     public void onBackPressed()
     {
-        if(recording == 1) {
-        }else{
+        if(recording == 0) {
             finish();
         }
-
     }
 
     protected void onResume(){
@@ -114,9 +111,10 @@ public class ConfigurationActivity extends AppCompatActivity implements SensorEv
     }
 
     public void onSensorChanged(SensorEvent e) {
-        cal = Calendar.getInstance(TimeZone.getDefault());
+        Calendar cal = Calendar.getInstance(TimeZone.getDefault());
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
         String output = sdf.format(cal.getTime());
+
         //record sensor data
         if(e.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
             output += "," + e.values[0] + "," + e.values[1] + "," + e.values[2];
@@ -132,7 +130,6 @@ public class ConfigurationActivity extends AppCompatActivity implements SensorEv
     }
 
     protected void startRecording() throws IOException {
-        Button start;
         recording = 1;
         a.clear();
         g.clear();
@@ -152,7 +149,6 @@ public class ConfigurationActivity extends AppCompatActivity implements SensorEv
         Toast.makeText(ConfigurationActivity.this, "Configuration is in progress.", Toast.LENGTH_SHORT).show();
 
         new CountDownTimer(5000, 1000) {
-
             public void onTick(long millisUntilFinished) {
             }
 
@@ -165,7 +161,7 @@ public class ConfigurationActivity extends AppCompatActivity implements SensorEv
             }
         }.start();
 
-       start = (Button)findViewById(R.id.startButton);
+       Button start = (Button)findViewById(R.id.startButton);
        start.setVisibility(View.INVISIBLE);
     }
 
@@ -211,17 +207,18 @@ public class ConfigurationActivity extends AppCompatActivity implements SensorEv
 
                         filepath = folderpath + "/Configuration";
 
-
                         F = new File(filepath, "Configuration_A" + ".csv");
 
-                        FileOutputStream fos = null;
+                        FileOutputStream fos;
+
                         try {
                             fos = new FileOutputStream(F);
+                            out = new BufferedWriter(new OutputStreamWriter(fos));
                         } catch (FileNotFoundException e) {
                             e.printStackTrace();
                         }
-                        out = new BufferedWriter(new OutputStreamWriter(fos));
 
+                        //write accelerometer data values
                         for (int i = 0; i < a.size(); i++) {
                             try {
                                 out.write(a.get(i));
@@ -241,16 +238,16 @@ public class ConfigurationActivity extends AppCompatActivity implements SensorEv
 
                         a.clear();
 
-                        //file name is the current date and time
                         F = new File(filepath, "Configuration_G" + ".csv");
-                        fos = null;
+
                         try {
                             fos = new FileOutputStream(F);
+                            out = new BufferedWriter(new OutputStreamWriter(fos));
                         } catch (FileNotFoundException e) {
                             e.printStackTrace();
                         }
-                        out = new BufferedWriter(new OutputStreamWriter(fos));
 
+                        //write gyroscope data values to file
                         for( int i = 0; i < g.size(); i++){
                             try {
                                 out.write(g.get(i));
@@ -302,12 +299,8 @@ public class ConfigurationActivity extends AppCompatActivity implements SensorEv
     }
 
     protected void stopRecording() throws IOException {
-        Button start;
-
         sm.unregisterListener(this);
         Toast.makeText(ConfigurationActivity.this, "Configuration has finished.", Toast.LENGTH_SHORT).show();
-        start = (Button) findViewById(R.id.startButton);
-        start.setText("Start");
 
         verifyStoragePermissions(this);
 

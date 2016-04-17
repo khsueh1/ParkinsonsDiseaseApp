@@ -68,8 +68,7 @@ public class RestingTremorsActivity extends AppCompatActivity implements SensorE
     @Override
     public void onBackPressed()
     {
-        if(recording == 1) {
-        }else{
+        if(recording == 0) {
             finish();
         }
     }

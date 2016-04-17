@@ -15,8 +15,18 @@
     android:id="@+id/lt"
     android:orientation="vertical">
 
+    <Button
+        android:layout_width="120dp"
+        android:layout_height="58dp"
+        android:text="Start"
+        android:id="@+id/ft_startButton"
+        android:layout_centerHorizontal="true"
+        android:layout_gravity="bottom" />
+
     <com.example.alex.parkinsonsdiseaseapp.Circle
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
+
+
 
 </LinearLayout>

@@ -7,8 +7,10 @@ import android.view.View;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.widget.Button;
 import android.widget.Toast;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -20,6 +22,7 @@ public class Circle extends View {
     private Random random = new Random();
     private ArrayList<ArrayList<Double>> distances;
     int flag = 1;
+    static int startFlag = 0;
     Data cData;
 
     public class Data {
@@ -35,10 +38,12 @@ public class Circle extends View {
     // draws circle
     @Override
     protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
-        mPaint.setStyle(Paint.Style.FILL);
-        mPaint.setColor(Color.RED);
-        canvas.drawCircle(x, y, r, mPaint);
+        if (startFlag == 1) {
+            super.onDraw(canvas);
+            mPaint.setStyle(Paint.Style.FILL);
+            mPaint.setColor(Color.RED);
+            canvas.drawCircle(x, y, r, mPaint);
+        }
     }
 
     // constructors
@@ -58,7 +63,7 @@ public class Circle extends View {
     }
 
     void init() {
-        // logic for random call here;
+
     }
 
 

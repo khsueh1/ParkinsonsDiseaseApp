@@ -93,7 +93,10 @@ public class Circle extends View {
         output = sdf.format(cal.getTime());
         output += "," + Math.sqrt(Math.pow(x - newX, 2) + Math.pow(y - newY, 2)) + "\n";
 
-        distances.add(output);
+        if(numCorrect <= TARGET) {
+            distances.add(output);
+        }
+
         System.out.println("distance: " + Math.sqrt(Math.pow(x - newX, 2) + Math.pow(y - newY, 2)));
         System.out.println("number correct: " + numCorrect);
         System.out.println("distance size: " + distances.size());

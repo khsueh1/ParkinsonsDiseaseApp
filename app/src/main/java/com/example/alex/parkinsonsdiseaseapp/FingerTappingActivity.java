@@ -67,7 +67,7 @@ public class FingerTappingActivity extends AppCompatActivity {
 
                     new CountDownTimer(DURATION, 1000) {
                         public void onTick(long millisUntilFinished) {
-                            if(Circle.numCorrect == Circle.TARGET) {
+                            if(Circle.numCorrect >= Circle.TARGET) {
                               onFinish();
                             }
                         }

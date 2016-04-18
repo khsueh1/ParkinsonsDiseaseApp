@@ -19,7 +19,8 @@ public class Circle extends View {
     private float y;
     private float lastx = 150;
     private float lasty = 150;
-    private int r = 150;
+    final float scale = getResources().getDisplayMetrics().density;
+    int r = (int) (50 * scale + 0.5f);
     private final Paint mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Random random = new Random();
     public static ArrayList<String> distances = new ArrayList<>();
@@ -41,6 +42,7 @@ public class Circle extends View {
         mPaint.setColor(Color.RED);
         System.out.println("x: " + x);
         System.out.println("y: " + y);
+        System.out.println("r: " + r);
         canvas.drawCircle(x, y, r, mPaint);
     }
 
@@ -65,8 +67,8 @@ public class Circle extends View {
 
     // gets random number,,
     void generateRandom() {
-          this.x =  random.nextInt(getWidth() - (2*r)) + r;
-          this.y = random.nextInt(getHeight() - (2*r)) + r;
+          this.x =  random.nextInt(getWidth() - (int) (2*r)) + r;
+          this.y = random.nextInt(getHeight() - (int) (2*r)) + r;
     }
 
     // when screen is tapped, old circle removed, new circle drawn
@@ -90,7 +92,7 @@ public class Circle extends View {
         String output;
 
         output = sdf.format(cal.getTime());
-        output += "," + Math.sqrt(Math.pow(x - newX, 2) + Math.pow(y - newY, 2)) + "\n";
+        output += "," + newX + "," + newY + "," + x + "," + y + "," + Math.sqrt(Math.pow(x - newX, 2) + Math.pow(y - newY, 2)) + "\n";
 
         if(numCorrect <= TARGET) {
             distances.add(output);
@@ -99,6 +101,9 @@ public class Circle extends View {
         System.out.println("distance: " + Math.sqrt(Math.pow(x - newX, 2) + Math.pow(y - newY, 2)));
         System.out.println("number correct: " + numCorrect);
         System.out.println("distance size: " + distances.size());
+        System.out.println("width: " + getWidth());
+        System.out.println("height: " + getHeight());
+        System.out.println("r: " + r);
     }
 
     public boolean isInsideCircle(float xPoint, float yPoint) {

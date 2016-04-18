@@ -20,7 +20,8 @@
         android:layout_height="fill_parent"
         android:gravity="center"
         android:text="Please hold the device in the palm of your hand. Keeping your hand level, try to rotate your wrist 180 degrees back and forth repeatedly during the duration of the test."
-        android:textSize="30dp" />
+        android:textSize="30dp"
+        android:layout_above="@+id/startButton" />
 
     <Button
         android:id="@+id/startButton"

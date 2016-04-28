@@ -31,6 +31,11 @@ public class Circle extends View {
     // draws circle
     @Override
     protected void onDraw(Canvas canvas) {
+
+        if (x == 0 || y == 0) {
+            generateRandom();
+        }
+
         while( (Math.abs(x - (lastx ))  <= (2*r)) && (Math.abs(y - (lasty ))  <= (2*r))){
             generateRandom();
         }
@@ -63,6 +68,7 @@ public class Circle extends View {
     }
 
     void init() {
+
     }
 
     // gets random number,,

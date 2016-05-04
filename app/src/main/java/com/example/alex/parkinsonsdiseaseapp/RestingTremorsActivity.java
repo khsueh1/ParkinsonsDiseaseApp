@@ -33,13 +33,17 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.TimeZone;
 
+/*
+    Resting Tremor csv output format:
+    timestamp , x, y, z
+ */
 public class RestingTremorsActivity extends AppCompatActivity implements SensorEventListener {
     private SensorManager sm;
     private Sensor mAcc;
     private BufferedWriter out = null;
     private Calendar cal;
-    private String Afile;
-    int recording = 0;
+    private String Afile; //resting tremor test file name
+    int recording = 0; //disable the back button when a test is in progress
 
     //will contain the accelerometer sensor data
     List<String> a = new ArrayList<>();
@@ -51,6 +55,7 @@ public class RestingTremorsActivity extends AppCompatActivity implements SensorE
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
 
+    //Explicitly check to see if there are read/write permissions
     public static void verifyStoragePermissions(Activity activity) {
         // Check if we have write permission
         int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
@@ -68,6 +73,7 @@ public class RestingTremorsActivity extends AppCompatActivity implements SensorE
     @Override
     public void onBackPressed()
     {
+        //allow exit of activity only if a test is not recording
         if(recording == 0) {
             finish();
         }
@@ -118,7 +124,8 @@ public class RestingTremorsActivity extends AppCompatActivity implements SensorE
         cal = Calendar.getInstance(TimeZone.getDefault());
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
         String output = sdf.format(cal.getTime());
-        //record sensor data
+
+        //record the timestamp and accelerometer values from the x, y, and z axis
         if (e.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
             output += "," + e.values[0] + "," + e.values[1] + "," + e.values[2];
             output += "\n";
@@ -126,26 +133,26 @@ public class RestingTremorsActivity extends AppCompatActivity implements SensorE
         }
     }
 
-    private void showEmailOption(){
+    /*
+    Creates email pop up after the file popup. If the user selects, go to the sendEmail() function.
+    If user selects no, go back to testing screen.
+     */
+    private void emailPopUp(){
         AlertDialog.Builder helpBuilder = new AlertDialog.Builder(this);
         helpBuilder.setTitle("Email");
         helpBuilder.setMessage("Would you like to email the test data?");
         helpBuilder.setPositiveButton("Yes",
                 new DialogInterface.OnClickListener() {
-
                     public void onClick(DialogInterface dialog, int which) {
-                        //save the data
                         sendEmail();
                     }
                 });
 
         helpBuilder.setNegativeButton("No",
                 new DialogInterface.OnClickListener() {
-
                     public void onClick(DialogInterface dialog, int which) {
-                        // Do nothing but close the dialog
+                        //close the dialog and clear the stored accelerometer sensor data
                         a.clear();
-                        recording = 0;
                     }
                 });
 
@@ -154,11 +161,14 @@ public class RestingTremorsActivity extends AppCompatActivity implements SensorE
         helpDialog.setCancelable(false);
         helpDialog.setCanceledOnTouchOutside(false);
         helpDialog.show();
-
     }
 
-    private void showSimplePopUp() {
-
+    /*
+    This method creates the popup for saving the file. If the user selects yes, it then proceeds to create
+    the folders for the application and test if needed and the file for this run of the test. Then goes to
+    emailPopUp for the second pop up.
+     */
+    private void filePopUp() {
         AlertDialog.Builder helpBuilder = new AlertDialog.Builder(this);
         helpBuilder.setTitle("New Resting Tremors File");
         helpBuilder.setMessage("Save resting tremors file?");
@@ -166,27 +176,23 @@ public class RestingTremorsActivity extends AppCompatActivity implements SensorE
                 new DialogInterface.OnClickListener() {
 
                     public void onClick(DialogInterface dialog, int which) {
-                        //save the data
-                        String rootpath;
-                        String folderpath;
-                        String filepath;
-                        File F;
-
                         //make directories if they do not exist
-                        rootpath = Environment.getExternalStorageDirectory().getPath();
-                        F = new File(rootpath, "Parkinsons");
+                        String rootpath = Environment.getExternalStorageDirectory().getPath();
 
+                        //checks to see if base folder "Parkinsons" exists
+                        File F = new File(rootpath, "Parkinsons");
                         if (!F.exists()) {
                             F.mkdirs();
                         }
 
-                        folderpath = rootpath + "/Parkinsons";
+                        //checks to see if "RestingTremors" folder exists
+                        String folderpath = rootpath + "/Parkinsons";
                         F = new File(folderpath, "RestingTremors");
                         if (!F.exists()) {
                             F.mkdirs();
                         }
 
-                        filepath = folderpath + "/RestingTremors";
+                        String filepath = folderpath + "/RestingTremors";
 
                         //file name is the current date and time
                         cal = Calendar.getInstance(TimeZone.getDefault());
@@ -195,6 +201,7 @@ public class RestingTremorsActivity extends AppCompatActivity implements SensorE
 
                         F = new File(filepath, output + "_RT_A.csv");
 
+                        //record the resting tremor test file name
                         Afile = output + "_RT_A.csv";
 
                         FileOutputStream fos = null;
@@ -203,8 +210,10 @@ public class RestingTremorsActivity extends AppCompatActivity implements SensorE
                         } catch (FileNotFoundException e) {
                             e.printStackTrace();
                         }
+
                         out = new BufferedWriter(new OutputStreamWriter(fos));
 
+                        //write the accelerometer data to the .csv file
                         for (int i = 0; i < a.size(); i++) {
                             try {
                                 out.write(a.get(i));
@@ -222,21 +231,21 @@ public class RestingTremorsActivity extends AppCompatActivity implements SensorE
                             e.printStackTrace();
                         }
 
+                        //clear the stored accelerometer data
                         a.clear();
 
                         Toast.makeText(RestingTremorsActivity.this, "File saved.", Toast.LENGTH_SHORT).show();
 
-                        showEmailOption();
+                        //show option to email this test data
+                        emailPopUp();
                     }
                 });
 
         helpBuilder.setNegativeButton("Discard",
                 new DialogInterface.OnClickListener() {
-
                     public void onClick(DialogInterface dialog, int which) {
-                        // Do nothing but close the dialog
+                        //clear the stored accelerometer data
                         a.clear();
-                        recording = 0;
                     }
                 });
 
@@ -247,10 +256,14 @@ public class RestingTremorsActivity extends AppCompatActivity implements SensorE
         helpDialog.show();
     }
 
+    /*
+    Method called when the start button is pressed. Changes the start button to a stop button and puts
+    the test in the recording state, where we begin to record accelerometer values.
+     */
     protected void startRecording() throws IOException {
         Button start;
 
-        //checks to make sure the phone has the sensors that we are recording from
+        //checks to make sure the phone has the accelerometer sensor
         if (sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null) {
             mAcc = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
             sm.registerListener(this, mAcc, SensorManager.SENSOR_DELAY_FASTEST);
@@ -260,26 +273,37 @@ public class RestingTremorsActivity extends AppCompatActivity implements SensorE
         Toast.makeText(RestingTremorsActivity.this, "The test has begun.", Toast.LENGTH_SHORT).show();
         start = (Button) findViewById(R.id.startButton);
         start.setText("Stop");
+
+        //test had started to record
         recording = 1;
     }
 
+    /*
+    Method is called when the test has been completed, resetting the interface and variables.
+     */
     protected void stopRecording() throws IOException {
-        Button start;
-
         sm.unregisterListener(this);
         Toast.makeText(RestingTremorsActivity.this, "The test has stopped.", Toast.LENGTH_SHORT).show();
-        start = (Button) findViewById(R.id.startButton);
+        Button start = (Button) findViewById(R.id.startButton);
         start.setText("Start");
 
+        //test has stopped recording
+        recording = 0;
+
+        //check to see if we have write permissions to create the file on internal storage
         verifyStoragePermissions(this);
 
-        showSimplePopUp();
+        //show popup option for saving the test file
+        filePopUp();
     }
 
+    /*
+    Method is called when the user selects YES to the email popup. Automatically attaches file created from
+    this test and creates an appropriate subject line. Finishes activity after sending.
+     */
     protected void sendEmail() {
         String[] TO = {""};
         String[] CC = {""};
-        String rootpath;
         ArrayList <Uri> uris = new ArrayList<>();
         Intent emailIntent = new Intent(Intent.ACTION_SEND_MULTIPLE);
 
@@ -289,10 +313,10 @@ public class RestingTremorsActivity extends AppCompatActivity implements SensorE
         emailIntent.putExtra(Intent.EXTRA_CC, CC);
         emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Resting Tremor Test Data");
 
-        rootpath = Environment.getExternalStorageDirectory().getPath();
+        String rootpath = Environment.getExternalStorageDirectory().getPath();
 
         uris.add(Uri.parse("file://" + rootpath + "/Parkinsons/RestingTremors/" + Afile));
-        uris.add(Uri.parse("file://" + rootpath + "/Parkinsons/Configuration/Configuration_A.csv"));;
+        uris.add(Uri.parse("file://" + rootpath + "/Parkinsons/Configuration/Configuration_A.csv"));
 
         emailIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
 

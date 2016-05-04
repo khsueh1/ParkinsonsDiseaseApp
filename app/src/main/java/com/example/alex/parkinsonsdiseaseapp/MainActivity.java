@@ -10,28 +10,19 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
-import android.widget.Toast;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.TimeZone;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
-
     Button restingTremorsButton;
     Button supAndProButton;
     Button fingerTappingButton;
     Button ConfigurationButton;
 
-    long milli_per_day = 86400000;
-
+    //indicates how often configuration needs to be performed
+    //currently this is set to one day (time value in milliseconds)
+    long CONFIG_TIME = 86400000;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,7 +40,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         fingerTappingButton = (Button) findViewById(R.id.fingerTapping);
         fingerTappingButton.setOnClickListener(this);
-
     }
 
     @Override
@@ -79,8 +69,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return super.onOptionsItemSelected(item);
     }
 
-    private void showSimplePopUp() {
-
+    /* Alerts user that configuration needs to be done */
+    private void ConfigurationPopUp() {
         AlertDialog.Builder helpBuilder = new AlertDialog.Builder(this);
         helpBuilder.setTitle("New Configuration Needed");
         helpBuilder.setMessage("Configuration for your device will need to be performed daily prior to starting a test.");
@@ -98,33 +88,33 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         helpDialog.show();
     }
 
-
-
+    //checks the last modification date of the configuration file, indicates if configuration needs
+    //to be done
     boolean checkConfig() {
         String rootpath, folderpath, filepath;
         File F;
-        long config;
-        long time;
+        long config; //modification time of the configuration file
+        long time; //current time
 
         rootpath = Environment.getExternalStorageDirectory().getPath();
 
         F = new File(rootpath, "Parkinsons");
 
-        //base folder
+        //check if base folder (Parkinsons) exists
         if(!F.exists()) {
             return true;
         }else{
 
-            //configuration folder
+            //check if Configuration folder exists
             folderpath = rootpath + "/Parkinsons";
             F = new File(folderpath, "Configuration");
             if(!F.exists()){
                 return true;
             }
 
-            //configuration file
             filepath = folderpath + "/Configuration";
 
+            //checks if there are any files in the Configuration folder
             F = new File(filepath);
             File file[] = F.listFiles();
             if(file.length == 0) {
@@ -133,49 +123,43 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             F = file[0];
 
-            //config time
+            //Get the modification time of the configuration file
             config = (new Date(F.lastModified()).getTime());
 
-            System.out.println("File last modified: " + config);
-
-            //current time
+            //get the current time
             time = (new Date().getTime());
 
-            //check if the difference is greater than 1 day
-            if(time - config > milli_per_day){
+            //check if the difference to see if configuration needs to be done
+            if(time - config > CONFIG_TIME){
                 return true;
             }
         }
-
         return false;
     }
-
-
 
     @Override
     public void onClick(View view) {
 
         switch (view.getId()) {
             case R.id.restingtremors:
+                //check to see if configuration files need to be updated
                 if(checkConfig()) {
-                    showSimplePopUp();
+                    ConfigurationPopUp();
                 }else{
                     startActivity(new Intent(MainActivity.this, RestingTremorsActivity.class));
                 }
                 break;
             case R.id.supAndPro:
+                //check to see if configuration files need to be updated
                 if(checkConfig()){
-                    showSimplePopUp();
+                    ConfigurationPopUp();
                 }else {
                     startActivity(new Intent(MainActivity.this, SupinationPronationActivity.class));
                 }
                 break;
             case R.id.fingerTapping:
-                if(checkConfig()) {
-                    showSimplePopUp();
-                }else{
-                    startActivity(new Intent(MainActivity.this, FingerTappingActivity.class));
-                }
+                //finger tapping test does not use sensors, so it does not need the configuration file
+                startActivity(new Intent(MainActivity.this, FingerTappingActivity.class));
                 break;
             case R.id.configure:
                 startActivity(new Intent(MainActivity.this, ConfigurationActivity.class));

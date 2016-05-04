@@ -33,18 +33,25 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.TimeZone;
 
+/*
+    Supination Pronation test data will be in a folder which contains an accelerometer and
+    gyroscope csv file
+
+    csv output format for accelerometer and gyroscope data:
+    timestamp , x, y, z
+ */
 public class SupinationPronationActivity extends AppCompatActivity implements SensorEventListener{
     private SensorManager sm;
     private Sensor mAcc;
     private Sensor gyro;
     private BufferedWriter out = null;
     private Calendar cal;
-    private String Afile;
-    private String Gfile;
-    private String date;
-    int recording = 0;
+    private String Afile;   //accelerometer test file name
+    private String Gfile;   //gyroscope test file name
+    int recording = 0;      //name of the subfolder
+    String date;
 
-    //will contain the accelerometer sensor data
+    //will contain the accelerometer and gyroscope sensor data
     List<String> a = new ArrayList<>();
     List<String> g = new ArrayList<>();
 
@@ -55,6 +62,7 @@ public class SupinationPronationActivity extends AppCompatActivity implements Se
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
 
+    //Explicitly check to see if there are read/write permissions
     public static void verifyStoragePermissions(Activity activity) {
         // Check if we have write permission
         int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
@@ -72,8 +80,8 @@ public class SupinationPronationActivity extends AppCompatActivity implements Se
     @Override
     public void onBackPressed()
     {
-        if(recording == 1) {
-        }else{
+        //allow exit of activity only if a test is not recording
+        if(recording == 0) {
             finish();
         }
     }
@@ -123,13 +131,14 @@ public class SupinationPronationActivity extends AppCompatActivity implements Se
         cal = Calendar.getInstance(TimeZone.getDefault());
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
         String output = sdf.format(cal.getTime());
-        //record sensor data
+        //record the timestamp and accelerometer values from the x, y, and z axis
         if(e.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
             output += "," + e.values[0] + "," + e.values[1] + "," + e.values[2];
             output += "\n";
             a.add(output);
         }
 
+        //record the timestamp and gyroscope values from the x, y, and z axis
         if(e.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
             output += "," + e.values[0] + "," + e.values[1] + "," + e.values[2];
             output += "\n";
@@ -137,6 +146,181 @@ public class SupinationPronationActivity extends AppCompatActivity implements Se
         }
     }
 
+    /*
+    Creates email pop up after the file popup. If the user selects, go to the sendEmail() function.
+    If user selects no, go back to testing screen.
+     */
+    private void emailPopUp(){
+        AlertDialog.Builder helpBuilder = new AlertDialog.Builder(this);
+        helpBuilder.setTitle("Email");
+        helpBuilder.setMessage("Would you like to email the test data?");
+        helpBuilder.setPositiveButton("Yes",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        sendEmail();
+                    }
+                });
+
+        helpBuilder.setNegativeButton("No",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        //close the dialog and clear the stored accelerometer and gyroscope sensor data
+                        a.clear();
+                        g.clear();
+                    }
+                });
+
+        // Remember, create doesn't show the dialog
+        AlertDialog helpDialog = helpBuilder.create();
+        helpDialog.setCancelable(false);
+        helpDialog.setCanceledOnTouchOutside(false);
+        helpDialog.show();
+    }
+
+    /*
+    This method creates the popup for saving the file. If the user selects yes, it then proceeds to create
+    the folders for the application and test if needed and the file for this run of the test. Then goes to
+    emailPopUp for the second pop up.
+     */
+    private void filePopUp() {
+        AlertDialog.Builder helpBuilder = new AlertDialog.Builder(this);
+        helpBuilder.setTitle("New Supination Pronation File");
+        helpBuilder.setMessage("Save supination pronation file?");
+        helpBuilder.setPositiveButton("Save",
+                new DialogInterface.OnClickListener() {
+
+                    public void onClick(DialogInterface dialog, int which) {
+                        //make directories if they do not exist
+                        String rootpath = Environment.getExternalStorageDirectory().getPath();
+
+                        //checks to see if base folder "Parkinsons" exists
+                        File F = new File(rootpath, "Parkinsons");
+                        if (!F.exists()) {
+                            F.mkdirs();
+                        }
+
+                        //checks to see if "SupinationPronation" folder exists
+                        String folderpath = rootpath + "/Parkinsons";
+                        F = new File(folderpath, "SupinationPronation");
+                        if (!F.exists()) {
+                            F.mkdirs();
+                        }
+
+                        String filepath = folderpath + "/SupinationPronation";
+
+                        //sub-folders for each test will be created to contain the gyroscope and accelerometer files
+                        cal = Calendar.getInstance(TimeZone.getDefault());
+                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_hh:mm:ss");
+                        String output = sdf.format(cal.getTime());
+                        //record the subfolder name
+                        date = output;
+
+                        //create the sub-folder, name by current date and time
+                        F = new File(filepath, output);
+                        if (!F.exists()) {
+                            F.mkdirs();
+                        }
+
+                        filepath += "/" + output;
+
+                        //file name is the current date and time
+                        F = new File(filepath, output + "_SP_A.csv");
+
+                        //record the accelerometer supination pronation file name
+                        Afile = output + "_SP_A.csv";
+
+                        FileOutputStream fos = null;
+                        try {
+                            fos = new FileOutputStream(F);
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                        }
+                        out = new BufferedWriter(new OutputStreamWriter(fos));
+
+                        //write the accelerometer data to the .csv file
+                        for (int i = 0; i < a.size(); i++) {
+                            try {
+                                out.write(a.get(i));
+                            } catch (IOException e1) {
+                                e1.printStackTrace();
+                            }
+                        }
+
+                        try {
+                            if (out != null) {
+                                out.flush();
+                                out.close();
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                        //clear the stored accelerometer data
+                        a.clear();
+
+                        //file name is the current date and time
+                        F = new File(filepath, output + "_SP_G.csv");
+
+                        //record the gyroscope supination pronation file name
+                        Gfile = output + "_SP_G.csv";
+
+                        fos = null;
+                        try {
+                            fos = new FileOutputStream(F);
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                        }
+                        out = new BufferedWriter(new OutputStreamWriter(fos));
+
+                        //write the gyroscope data to the .csv file
+                        for( int i = 0; i < g.size(); i++){
+                            try {
+                                out.write(g.get(i));
+                            } catch (IOException e1) {
+                                e1.printStackTrace();
+                            }
+                        }
+
+                        try {
+                            if (out != null) {
+                                out.flush();
+                                out.close();
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                        //clear the stored gyroscope data
+                        g.clear();
+
+                        Toast.makeText(SupinationPronationActivity.this, "File saved.", Toast.LENGTH_SHORT).show();
+
+                        //show option to email this test data
+                        emailPopUp();
+                    }
+                });
+
+        helpBuilder.setNegativeButton("Discard",
+                new DialogInterface.OnClickListener() {
+
+                    public void onClick(DialogInterface dialog, int which) {
+                        //clear the stored accelerometer and gyroscope data
+                        a.clear();
+                        g.clear();
+                    }
+                });
+
+        // Remember, create doesn't show the dialog
+        AlertDialog helpDialog = helpBuilder.create();
+        helpDialog.setCancelable(false);
+        helpDialog.setCanceledOnTouchOutside(false);
+        helpDialog.show();
+    }
+
+    /*
+    Method called when the start button is pressed. Changes the start button to a stop button and puts
+    the test in the recording state, where we begin to record accelerometer and gyroscope values.
+     */
     protected void startRecording() throws IOException {
         Button start;
 
@@ -156,189 +340,38 @@ public class SupinationPronationActivity extends AppCompatActivity implements Se
 
         Toast.makeText(SupinationPronationActivity.this, "The test has begun.", Toast.LENGTH_SHORT).show();
         start = (Button)findViewById(R.id.startButton);
-        recording = 1;
         start.setText("Stop");
+
+        //test had started to record
+        recording = 1;
     }
 
-    private void showEmailOption(){
-        AlertDialog.Builder helpBuilder = new AlertDialog.Builder(this);
-        helpBuilder.setTitle("Email");
-        helpBuilder.setMessage("Would you like to email the test data?");
-        helpBuilder.setPositiveButton("Yes",
-                new DialogInterface.OnClickListener() {
-
-                    public void onClick(DialogInterface dialog, int which) {
-                        //save the data
-                        sendEmail();
-                    }
-                });
-
-        helpBuilder.setNegativeButton("No",
-                new DialogInterface.OnClickListener() {
-
-                    public void onClick(DialogInterface dialog, int which) {
-                        // Do nothing but close the dialog
-                        a.clear();
-                        g.clear();
-                        recording = 0;
-                    }
-                });
-
-        // Remember, create doesn't show the dialog
-        AlertDialog helpDialog = helpBuilder.create();
-        helpDialog.setCancelable(false);
-        helpDialog.setCanceledOnTouchOutside(false);
-        helpDialog.show();
-
-    }
-
-    private void showSimplePopUp() {
-
-        AlertDialog.Builder helpBuilder = new AlertDialog.Builder(this);
-        helpBuilder.setTitle("New Supination Pronation File");
-        helpBuilder.setMessage("Save supination pronation file?");
-        helpBuilder.setPositiveButton("Save",
-                new DialogInterface.OnClickListener() {
-
-                    public void onClick(DialogInterface dialog, int which) {
-                        //save the data
-                        String rootpath;
-                        String folderpath;
-                        String filepath;
-                        File F;
-
-                        //make directories if they do not exist
-                        rootpath = Environment.getExternalStorageDirectory().getPath();
-                        F = new File(rootpath, "Parkinsons");
-
-                        if (!F.exists()) {
-                            F.mkdirs();
-                        }
-
-                        folderpath = rootpath + "/Parkinsons";
-                        F = new File(folderpath, "SupinationPronation");
-                        if (!F.exists()) {
-                            F.mkdirs();
-                        }
-
-                        filepath = folderpath + "/SupinationPronation";
-
-                        //file name is the current date and time
-                        cal = Calendar.getInstance(TimeZone.getDefault());
-                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_hh:mm:ss");
-                        String output = sdf.format(cal.getTime());
-                        date = output;
-
-                        F = new File(filepath, output);
-                        if (!F.exists()) {
-                            F.mkdirs();
-                        }
-
-                        filepath += "/" + output;
-
-                        F = new File(filepath, output + "_SP_A.csv");
-                        Afile = output + "_SP_A.csv";
-
-                        FileOutputStream fos = null;
-                        try {
-                            fos = new FileOutputStream(F);
-                        } catch (FileNotFoundException e) {
-                            e.printStackTrace();
-                        }
-                        out = new BufferedWriter(new OutputStreamWriter(fos));
-
-                        for (int i = 0; i < a.size(); i++) {
-                            try {
-                                out.write(a.get(i));
-                            } catch (IOException e1) {
-                                e1.printStackTrace();
-                            }
-                        }
-
-                        try {
-                            if (out != null) {
-                                out.flush();
-                                out.close();
-                            }
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-
-                        a.clear();
-
-                        //file name is the current date and time
-                        F = new File(filepath, output + "_SP_G.csv");
-                        Gfile = output + "_SP_G.csv";
-
-                        fos = null;
-                        try {
-                            fos = new FileOutputStream(F);
-                        } catch (FileNotFoundException e) {
-                            e.printStackTrace();
-                        }
-                        out = new BufferedWriter(new OutputStreamWriter(fos));
-
-                        for( int i = 0; i < g.size(); i++){
-                            try {
-                                out.write(g.get(i));
-                            } catch (IOException e1) {
-                                e1.printStackTrace();
-                            }
-                        }
-
-                        try {
-                            if (out != null) {
-                                out.flush();
-                                out.close();
-                            }
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-
-                        g.clear();
-
-                        Toast.makeText(SupinationPronationActivity.this, "File saved.", Toast.LENGTH_SHORT).show();
-
-                        showEmailOption();
-                    }
-                });
-
-        helpBuilder.setNegativeButton("Discard",
-                new DialogInterface.OnClickListener() {
-
-                    public void onClick(DialogInterface dialog, int which) {
-                        // Do nothing but close the dialog
-                        a.clear();
-                        g.clear();
-                        recording = 0;
-                    }
-                });
-
-        // Remember, create doesn't show the dialog
-        AlertDialog helpDialog = helpBuilder.create();
-        helpDialog.setCancelable(false);
-        helpDialog.setCanceledOnTouchOutside(false);
-        helpDialog.show();
-    }
-
-
+    /*
+    Method is called when the test has been completed, resetting the interface and variables.
+     */
     protected void stopRecording() throws IOException{
-        Button start;
-
         sm.unregisterListener(this);
         Toast.makeText(SupinationPronationActivity.this, "The test has stopped.", Toast.LENGTH_SHORT).show();
-        start = (Button) findViewById(R.id.startButton);
+        Button start = (Button) findViewById(R.id.startButton);
         start.setText("Start");
 
+        //test has stopped recording
+        recording = 0;
+
+        //check to see if we have write permissions to create the file on internal storage
         verifyStoragePermissions(this);
 
-        showSimplePopUp();
+        //show popup option for saving the test file
+        filePopUp();
     }
 
+    /*
+    Method is called when the user selects YES to the email popup. Automatically attaches file created from
+    this test and creates an appropriate subject line. Finishes activity after sending.
+     */
     protected void sendEmail() {
         String[] TO = {""};
         String[] CC = {""};
-        String rootpath;
         ArrayList <Uri> uris = new ArrayList<>();
         Intent emailIntent = new Intent(Intent.ACTION_SEND_MULTIPLE);
 
@@ -348,7 +381,7 @@ public class SupinationPronationActivity extends AppCompatActivity implements Se
         emailIntent.putExtra(Intent.EXTRA_CC, CC);
         emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Supination Pronation Test Data");
 
-        rootpath = Environment.getExternalStorageDirectory().getPath();
+        String rootpath = Environment.getExternalStorageDirectory().getPath();
 
         uris.add(Uri.parse("file://" + rootpath + "/Parkinsons/SupinationPronation/" + date + "/" + Afile));
         uris.add(Uri.parse("file://" + rootpath + "/Parkinsons/SupinationPronation/" + date + "/" + Gfile));

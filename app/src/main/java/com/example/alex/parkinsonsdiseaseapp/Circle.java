@@ -13,22 +13,37 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Random;
 import java.util.TimeZone;
-
+/*
+Circle class used to draw random circles to the screen in the finger tapping activity.
+ */
 public class Circle extends View {
     private float x;
     private float y;
     private float lastx = 150;
     private float lasty = 150;
-    final float scale = getResources().getDisplayMetrics().density;
-    int r = (int) (50 * scale + 0.5f);
     private final Paint mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Random random = new Random();
-    public static ArrayList<String> distances = new ArrayList<>();
-    public static int numCorrect = 0;
     public static int recordflag = 0;
+
+    //Array that holds the file output.
+    public static ArrayList<String> distances = new ArrayList<>();
+
+    //Scale to adjust the circle depending on the resolution of the phone. Do not adjust this.
+    final float scale = getResources().getDisplayMetrics().density;
+
+    //Radius of the circle. Adjust this to change size of circle.
+    int r = (int) (50 * scale + 0.5f);
+
+    //number of circles the user has tapped.
+    public static int numCorrect = 0;
+
+    //Number of circles the user must hit to finish test.
     public static int TARGET = 15;
 
-    // draws circle
+    /*
+    Draws the circle to the screen, and is called when the constructor is called at the start of
+    the activity and when invalidate() is called in OnTouchEvent().
+    */
     @Override
     protected void onDraw(Canvas canvas) {
 
@@ -36,6 +51,10 @@ public class Circle extends View {
             generateRandom();
         }
 
+        /*
+        Generates random x and y coordinates for the circle that is at least the diameter distance away
+        from the previous circle.
+        */
         while( (Math.abs(x - (lastx ))  <= (2*r)) && (Math.abs(y - (lasty ))  <= (2*r))){
             generateRandom();
         }
@@ -51,7 +70,7 @@ public class Circle extends View {
         canvas.drawCircle(x, y, r, mPaint);
     }
 
-    // constructors
+    // Constructors for the circle, Java forces this to be here.
     public Circle(Context context) {
         super(context);
         init();
@@ -68,16 +87,18 @@ public class Circle extends View {
     }
 
     void init() {
-
     }
 
-    // gets random number,,
+    // Gets random number for x and y coordinates for new Circle. Used in OnDraw.
     void generateRandom() {
           this.x =  random.nextInt(getWidth() - (int) (2*r)) + r;
           this.y = random.nextInt(getHeight() - (int) (2*r)) + r;
     }
 
-    // when screen is tapped, old circle removed, new circle drawn
+    /*
+    Called when user taps the screen. If user hits the cirlce, generate a new one and record the event,
+    if they missed, just record the value.
+    */
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if(recordflag == 1) {
@@ -92,6 +113,7 @@ public class Circle extends View {
         return super.onTouchEvent(event);
     }
 
+    //This method generates the output that is stored in the global vector.
     void distance(double newX, double newY) {
         Calendar cal = Calendar.getInstance(TimeZone.getDefault());
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
@@ -103,15 +125,9 @@ public class Circle extends View {
         if(numCorrect <= TARGET) {
             distances.add(output);
         }
-
-        System.out.println("distance: " + Math.sqrt(Math.pow(x - newX, 2) + Math.pow(y - newY, 2)));
-        System.out.println("number correct: " + numCorrect);
-        System.out.println("distance size: " + distances.size());
-        System.out.println("width: " + getWidth());
-        System.out.println("height: " + getHeight());
-        System.out.println("r: " + r);
     }
 
+    //This method checks if the user taps within the circle's bounds.
     public boolean isInsideCircle(float xPoint, float yPoint) {
         float dx = (x - xPoint);
         float dxPow = (float) Math.pow(dx, 2);

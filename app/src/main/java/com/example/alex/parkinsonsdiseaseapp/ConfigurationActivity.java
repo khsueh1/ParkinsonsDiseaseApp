@@ -33,6 +33,11 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.TimeZone;
 
+/*
+Configuration test for the accelerometer and gyroscope of the phone. Must be conducted with the phone
+lying on a flat surface for the duration of the test. Used to eliminate noise produced by the sensors
+when performing data analysis
+ */
 public class ConfigurationActivity extends AppCompatActivity implements SensorEventListener {
     private SensorManager sm;
     private Sensor mAcc;
@@ -40,11 +45,11 @@ public class ConfigurationActivity extends AppCompatActivity implements SensorEv
     private BufferedWriter out = null;
     int recording = 0;
 
-    //will contain the accelerometer sensor data
+    //List Containing Accelerometer readings and gyroscope readings, that will be printed to seperate files.
     List<String> a=new ArrayList<>();
     List<String> g = new ArrayList<>();
 
-    // Storage Permissions
+    // Gain storage permissions, allowing us to read and write files to the device.
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
     private static String[] PERMISSIONS_STORAGE = {
             Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -66,6 +71,7 @@ public class ConfigurationActivity extends AppCompatActivity implements SensorEv
     }
 
     @Override
+    //Method is called when the back button is presses, which simply finishes the activity.
     public void onBackPressed()
     {
         if(recording == 0) {
@@ -87,6 +93,9 @@ public class ConfigurationActivity extends AppCompatActivity implements SensorEv
     public void onAccuracyChanged(Sensor sensor, int accuracy){
     }
 
+    /*
+    Method is called when the activity is created.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -110,6 +119,10 @@ public class ConfigurationActivity extends AppCompatActivity implements SensorEv
         });
     }
 
+    /*
+    Method is called anytime there is a sensor change. Depending on which sensor, the data is recorded in
+    a string and stored in the global vectors.
+     */
     public void onSensorChanged(SensorEvent e) {
         Calendar cal = Calendar.getInstance(TimeZone.getDefault());
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
@@ -129,6 +142,11 @@ public class ConfigurationActivity extends AppCompatActivity implements SensorEv
         }
     }
 
+    /*
+    Method is called after the initial creation of the activity. Sets up the accelerometer and gyroscope
+    for reading. For this test, it also initializes a countdown timer, currently set to 5 seconds, before
+    the activity stops.
+     */
     protected void startRecording() throws IOException {
         recording = 1;
         a.clear();
@@ -137,21 +155,25 @@ public class ConfigurationActivity extends AppCompatActivity implements SensorEv
         //checks to make sure the phone has the sensors that we are recording from
         if(sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null) {
             mAcc = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+            //Sample the sensor at the fastest speed possible
             sm.registerListener(this, mAcc, SensorManager.SENSOR_DELAY_FASTEST);
         }
 
         if(sm.getDefaultSensor(Sensor.TYPE_GYROSCOPE) != null) {
             gyro = sm.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
+            //Sample the sensor at the fastest speed possible
             sm.registerListener(this, gyro, SensorManager.SENSOR_DELAY_FASTEST);
         }
 
         Toast.makeText(ConfigurationActivity.this, "Configuration is in progress.", Toast.LENGTH_SHORT).show();
         Toast.makeText(ConfigurationActivity.this, "Configuration is in progress.", Toast.LENGTH_SHORT).show();
 
+        //Timer for config activity. Change first number (in MS) to adjust time.
         new CountDownTimer(5000, 1000) {
             public void onTick(long millisUntilFinished) {
             }
 
+            //Called when timer is complete. We call stop recording, which will clean up the test and print to file.
             public void onFinish() {
                 try {
                     stopRecording();
@@ -165,6 +187,7 @@ public class ConfigurationActivity extends AppCompatActivity implements SensorEv
        start.setVisibility(View.INVISIBLE);
     }
 
+    //Deletes a directory and all files in that directory. Used in stop recording.
     void deleteRecursive(File fileOrDirectory) {
         if (fileOrDirectory.isDirectory())
             for (File child : fileOrDirectory.listFiles())
@@ -173,8 +196,11 @@ public class ConfigurationActivity extends AppCompatActivity implements SensorEv
         fileOrDirectory.delete();
     }
 
-    private void showSimplePopUp() {
-
+    /*
+    This method creates the popup for saving the file. If the user selects yes, it then proceeds to create
+    the folders for the application and test if needed, and the file for this run of the test.
+     */
+    private void filePopUp() {
         AlertDialog.Builder helpBuilder = new AlertDialog.Builder(this);
         helpBuilder.setTitle("New Configuration File");
         helpBuilder.setMessage("Save configuration file?");
@@ -182,7 +208,6 @@ public class ConfigurationActivity extends AppCompatActivity implements SensorEv
                 new DialogInterface.OnClickListener() {
 
                     public void onClick(DialogInterface dialog, int which) {
-                        //save the data
                         String rootpath;
                         String folderpath;
                         String filepath;
@@ -209,8 +234,8 @@ public class ConfigurationActivity extends AppCompatActivity implements SensorEv
 
                         F = new File(filepath, "Configuration_A" + ".csv");
 
+                        //Establishing the output stream to write to file.
                         FileOutputStream fos;
-
                         try {
                             fos = new FileOutputStream(F);
                             out = new BufferedWriter(new OutputStreamWriter(fos));
@@ -218,7 +243,7 @@ public class ConfigurationActivity extends AppCompatActivity implements SensorEv
                             e.printStackTrace();
                         }
 
-                        //write accelerometer data values
+                        //write accelerometer data values to file from global vector
                         for (int i = 0; i < a.size(); i++) {
                             try {
                                 out.write(a.get(i));
@@ -238,8 +263,8 @@ public class ConfigurationActivity extends AppCompatActivity implements SensorEv
 
                         a.clear();
 
+                        //Establishing gyroscope file output stream.
                         F = new File(filepath, "Configuration_G" + ".csv");
-
                         try {
                             fos = new FileOutputStream(F);
                             out = new BufferedWriter(new OutputStreamWriter(fos));
@@ -247,7 +272,7 @@ public class ConfigurationActivity extends AppCompatActivity implements SensorEv
                             e.printStackTrace();
                         }
 
-                        //write gyroscope data values to file
+                        //write gyroscope data values to file from global vector
                         for( int i = 0; i < g.size(); i++){
                             try {
                                 out.write(g.get(i));
@@ -273,7 +298,7 @@ public class ConfigurationActivity extends AppCompatActivity implements SensorEv
                         startActivity(new Intent(ConfigurationActivity.this, MainActivity.class));
                     }
                 });
-
+        //Called when user doesn't save data. Cleans up data structures to reset test.
         helpBuilder.setNegativeButton("Discard",
                 new DialogInterface.OnClickListener() {
 
@@ -291,19 +316,23 @@ public class ConfigurationActivity extends AppCompatActivity implements SensorEv
                     }
                 });
 
-        // Remember, create doesn't show the dialog
+        //Displays the popup, and force the user to select an answer before continuing.
         AlertDialog helpDialog = helpBuilder.create();
         helpDialog.setCancelable(false);
         helpDialog.setCanceledOnTouchOutside(false);
         helpDialog.show();
     }
 
+    /*
+    Called when the test is over, cleans up sensors and calls the popup message to determine if
+    the user wants to save.
+    */
     protected void stopRecording() throws IOException {
         sm.unregisterListener(this);
         Toast.makeText(ConfigurationActivity.this, "Configuration has finished.", Toast.LENGTH_SHORT).show();
 
         verifyStoragePermissions(this);
 
-        showSimplePopUp();
+        filePopUp();
     }
 }
